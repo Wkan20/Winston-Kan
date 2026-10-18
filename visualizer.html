@@ -1,0 +1,335 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Substrate Plane Viewer</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: instrument panel. Big rotatable cell on the left, controls + readout on the right; explainer below. */
+:root {
+  --bg: #eef1f4;
+  --surface: #f9fafb;
+  --fg: #141b2b;
+  --muted: #5a6476;
+  --line: #cfd6df;
+  --cell: #8a95a8;
+  --plane-a: #1d4fd8;   /* sapphire blue */
+  --plane-b: #c26a07;   /* amber, the comparison plane */
+  --focus: #1d4fd8;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
+    --cell: #6c7891; --plane-a: #6f9bff; --plane-b: #f0a23b; --focus: #8fb1ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
+  --cell: #6c7891; --plane-a: #6f9bff; --plane-b: #f0a23b; --focus: #8fb1ff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--fg);
+  font: 15px/1.55 var(--font-body);
+}
+.wrap {
+  max-width: 1180px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 22px; }
+.eyebrow { font: 500 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 {
+  font-family: var(--font-display); font-stretch: 112%; font-weight: 800;
+  font-size: clamp(30px, 5vw, 46px); line-height: 1; margin: 8px 0 0; letter-spacing: -.01em; text-wrap: balance;
+}
+.back { color: var(--muted); font-size: 14px; text-decoration: none; border-bottom: 1px solid var(--line); }
+.back:hover { color: var(--fg); }
+.lede { max-width: 62ch; color: var(--muted); margin: 10px 0 0; }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .bench { grid-template-columns: 1fr; } }
+
+.stage {
+  position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  aspect-ratio: 1 / 1; max-width: 100%; max-height: 640px; width: 100%;
+}
+.stage canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.stage canvas:active { cursor: grabbing; }
+.stage .hint {
+  position: absolute; left: 14px; bottom: 12px; font: 12px var(--font-mono); color: var(--muted); pointer-events: none;
+}
+.legend { position: absolute; right: 14px; top: 12px; display: grid; gap: 4px; font: 500 14px var(--font-mono); text-align: right; }
+.legend .a { color: var(--plane-a); }
+.legend .b { color: var(--plane-b); }
+
+.panel { display: grid; gap: 16px; min-width: 0; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); margin: 0; padding: 14px 16px 16px; min-width: 0; }
+legend { font: 600 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 0 6px; }
+label { font-size: 13px; color: var(--muted); }
+select, input[type=number] {
+  font: 500 15px var(--font-mono); color: var(--fg); background: var(--bg);
+  border: 1px solid var(--line); border-radius: 4px; padding: 7px 8px; width: 100%;
+}
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.row { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
+.field { display: grid; gap: 4px; min-width: 0; }
+.idx { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.idx.cubic { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.idx .field label { font-family: var(--font-mono); text-align: center; }
+.idx input { text-align: center; }
+.idx input[readonly] { color: var(--muted); border-style: dashed; }
+.plane-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 8px; vertical-align: 0; }
+.big { font: 600 22px var(--font-mono); }
+.big .bar, .note .bar, td .bar, .legend .bar { text-decoration: overline; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip {
+  font: 500 13px var(--font-body); color: var(--fg); background: transparent; cursor: pointer;
+  border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px;
+}
+.chip:hover { border-color: var(--muted); }
+.chip[aria-pressed="true"] { border-color: currentColor; background: var(--bg); }
+#chipsA .chip[aria-pressed="true"] { color: var(--plane-a); }
+#chipsB .chip[aria-pressed="true"] { color: var(--plane-b); }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; }
+.toggle input { accent-color: var(--plane-b); width: 16px; height: 16px; }
+
+table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
+.readout th { text-align: left; font-weight: 400; color: var(--muted); padding: 7px 0; border-bottom: 1px solid var(--line); }
+.readout td { text-align: right; font: 500 14px var(--font-mono); padding: 7px 0; border-bottom: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.readout tr:last-child th, .readout tr:last-child td { border-bottom: 0; }
+.note { font-size: 14px; margin: 10px 0 0; }
+.note:empty { display: none; }
+
+.explain { margin-top: 44px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px; border-top: 1px solid var(--line); padding-top: 26px; }
+@media (max-width: 860px) { .explain { grid-template-columns: 1fr; } }
+.explain h2 { font: 700 17px/1.25 var(--font-display); font-stretch: 105%; margin: 0 0 8px; text-wrap: balance; }
+.explain p { margin: 0; color: var(--muted); max-width: 60ch; }
+.explain code { font-family: var(--font-mono); font-size: 13px; color: var(--fg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Thin-film crystallography tool</div>
+      <h1>Substrate Plane Viewer</h1>
+      <p class="lede">See which crystal face a substrate is cut on. Pick a material and a plane, drag the cell to rotate it, and compare two planes to get the angle between them.</p>
+    </div>
+    <a class="back" href="index.html">← Back to portfolio</a>
+  </header>
+
+  <div class="bench">
+    <div class="stage">
+      <canvas id="cv" aria-label="3D unit cell with the selected planes drawn through it"></canvas>
+      <div class="legend"><div class="a" id="legA"></div><div class="b" id="legB"></div></div>
+      <div class="hint">drag to rotate</div>
+    </div>
+
+    <div class="panel">
+      <fieldset>
+        <legend>Material</legend>
+        <div class="field">
+          <label for="mat">Crystal</label>
+          <select id="mat"></select>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="field"><label for="la">a (Å)</label><input id="la" type="number" step="0.001" min="0.5"></div>
+          <div class="field" id="cField"><label for="lc">c (Å)</label><input id="lc" type="number" step="0.001" min="0.5"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Plane A</legend>
+        <div class="plane-head"><span class="big" id="nameA" style="color:var(--plane-a)"></span></div>
+        <div class="idx" id="idxA"></div>
+        <div class="chips" id="chipsA"></div>
+        <p class="note" id="noteA"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Plane B</legend>
+        <div class="plane-head">
+          <span class="big" id="nameB" style="color:var(--plane-b)"></span>
+          <label class="toggle"><input type="checkbox" id="showB" checked> Show</label>
+        </div>
+        <div class="idx" id="idxB"></div>
+        <div class="chips" id="chipsB"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Readout</legend>
+        <table class="readout"><tbody id="readout"></tbody></table>
+        <label class="toggle" style="margin-top:10px"><input type="checkbox" id="family" checked> Show the whole family of parallel planes</label>
+      </fieldset>
+    </div>
+  </div>
+
+  <section class="explain">
+    <div>
+      <h2>Why the cut matters</h2>
+      <p>A film grown on a crystal tends to line its atoms up with the surface it lands on. That is templating, or epitaxy. C-plane and R-plane sapphire are the same crystal cut two ways, so they hand a film two different atomic patterns to copy.</p>
+    </div>
+    <div>
+      <h2>Amorphous vs. crystalline</h2>
+      <p>An amorphous substrate (like glass or thermal oxide) has no long-range order, so there is no pattern to copy and films come out amorphous or randomly oriented. Annealing can crystallize a film afterward, but only a crystalline substrate can set its orientation.</p>
+    </div>
+    <div>
+      <h2>Reading the numbers</h2>
+      <p><code>d</code> is the spacing between neighboring parallel planes, which is what X-ray diffraction measures. Hexagonal crystals use four indices <code>(h k i l)</code> with <code>i = −(h + k)</code>, so you type three and the fourth fills itself in.</p>
+    </div>
+  </section>
+</div>
+
+<script src="lattice.js"></script>
+<script>
+(function () {
+  const MATERIALS = {
+    sapphire: { name: 'Sapphire (α-Al₂O₃)', type: 'hexagonal', a: 4.759, c: 12.991 },
+    gan:      { name: 'GaN (wurtzite)',     type: 'hexagonal', a: 3.189, c: 5.185 },
+    zno:      { name: 'ZnO (wurtzite)',     type: 'hexagonal', a: 3.250, c: 5.207 },
+    si:       { name: 'Silicon',            type: 'cubic',     a: 5.431 },
+    mgo:      { name: 'MgO',                type: 'cubic',     a: 4.212 },
+    sto:      { name: 'SrTiO₃',             type: 'cubic',     a: 3.905 },
+  };
+  // hkl = the three independent indices (for hex, i is computed)
+  const PRESETS = {
+    hexagonal: [
+      { label: 'C-plane', hkl: [0, 0, 1], note: 'Basal plane, normal to the c-axis. The standard substrate for c-axis GaN in blue and white LEDs.' },
+      { label: 'R-plane', hkl: [1, -1, 2], note: 'Tilted 57.6° from C. Used for silicon-on-sapphire, for non-polar a-plane GaN, and with a CeO₂ buffer for YBCO films.' },
+      { label: 'A-plane', hkl: [1, 1, 0], note: 'A prism plane that contains the c-axis, so it sits at 90° to C.' },
+      { label: 'M-plane', hkl: [1, 0, 0], note: 'The other prism plane family. Used to grow non-polar and semi-polar GaN.' },
+    ],
+    cubic: [
+      { label: '(100)', hkl: [1, 0, 0], note: 'A cube face. Most CMOS silicon wafers are (100).' },
+      { label: '(110)', hkl: [1, 1, 0], note: 'Cuts diagonally through two cube faces.' },
+      { label: '(111)', hkl: [1, 1, 1], note: 'Close-packed plane. In silicon it etches slowest in KOH, which is why anisotropic etches leave 54.7° sidewalls.' },
+      { label: '(211)', hkl: [2, 1, 1], note: '' },
+    ],
+  };
+
+  const $ = (id) => document.getElementById(id);
+  const state = { mat: 'sapphire', a: 4.759, c: 12.991, A: [1, -1, 2], B: [0, 0, 1], showB: true, family: true };
+  let lat = Lattice.makeLattice('hexagonal', state.a, state.c);
+  const type = () => MATERIALS[state.mat].type;
+
+  // material dropdown
+  for (const [k, m] of Object.entries(MATERIALS)) {
+    const o = document.createElement('option'); o.value = k; o.textContent = m.name; $('mat').appendChild(o);
+  }
+
+  function buildIndexInputs(which) {
+    const box = $('idx' + which);
+    const hex = type() === 'hexagonal';
+    box.className = 'idx' + (hex ? '' : ' cubic');
+    const labels = hex ? ['h', 'k', 'i', 'l'] : ['h', 'k', 'l'];
+    box.innerHTML = labels.map((L) => {
+      const ro = L === 'i' ? ' readonly tabindex="-1"' : '';
+      return `<div class="field"><label for="${which}${L}">${L}</label><input id="${which}${L}" type="number" step="1" min="-9" max="9"${ro}></div>`;
+    }).join('');
+    const hkl = state[which];
+    $(which + 'h').value = hkl[0]; $(which + 'k').value = hkl[1]; $(which + 'l').value = hkl[2];
+    if (hex) $(which + 'i').value = -(hkl[0] + hkl[1]);
+    for (const L of ['h', 'k', 'l']) {
+      $(which + L).addEventListener('input', () => {
+        const v = ['h', 'k', 'l'].map((x) => parseInt($(which + x).value, 10) || 0);
+        state[which] = v;
+        if (hex) $(which + 'i').value = -(v[0] + v[1]);
+        update();
+      });
+    }
+  }
+
+  function buildChips(which) {
+    const box = $('chips' + which);
+    box.innerHTML = '';
+    PRESETS[type()].forEach((p) => {
+      const b = document.createElement('button');
+      b.type = 'button'; b.className = 'chip'; b.textContent = p.label;
+      b.addEventListener('click', () => { state[which] = p.hkl.slice(); buildIndexInputs(which); update(); });
+      box.appendChild(b);
+    });
+  }
+
+  function presetFor(hkl) {
+    return PRESETS[type()].find((p) => {
+      const g1 = Lattice.gVector(lat, p.hkl), g2 = Lattice.gVector(lat, hkl);
+      // same plane family if the normals are parallel (handles (2 0 0) vs (1 0 0) and sign flips)
+      const c = Math.abs(g1[0]*g2[0] + g1[1]*g2[1] + g1[2]*g2[2]) / (Math.hypot(...g1) * Math.hypot(...g2));
+      return c > 0.99999 && p.hkl.every((v, i) => Math.abs(v) <= 9);
+    });
+  }
+  const isZero = (h) => h.every((v) => v === 0);
+
+  function update() {
+    const t = type();
+    lat = Lattice.makeLattice(t, state.a, state.c);
+    const nA = Lattice.notation(t, state.A), nB = Lattice.notation(t, state.B);
+    $('nameA').innerHTML = isZero(state.A) ? '—' : nA;
+    $('nameB').innerHTML = isZero(state.B) ? '—' : nB;
+    $('legA').innerHTML = isZero(state.A) ? '' : nA;
+    $('legB').innerHTML = state.showB && !isZero(state.B) ? nB : '';
+
+    const pA = presetFor(state.A), pB = presetFor(state.B);
+    $('noteA').textContent = isZero(state.A) ? 'All three indices are zero, which is not a plane. Set at least one to a nonzero value.' : (pA && pA.note) || '';
+    const mark = (box, p) => [...$(box).children].forEach((b) => b.setAttribute('aria-pressed', String(!!p && b.textContent === p.label)));
+    mark('chipsA', pA); mark('chipsB', pB);
+
+    const fmt = (x, u = '') => (Number.isFinite(x) ? x.toFixed(3) + u : '—');
+    const rows = [];
+    if (!isZero(state.A)) {
+      rows.push(['d-spacing, plane A', fmt(Lattice.dSpacing(lat, state.A), ' Å')]);
+      rows.push(['Intercepts, plane A', Lattice.intercepts(lat, state.A).map(([ax, v]) => `${ax}: ${v}`).join('  ')]);
+    }
+    if (state.showB && !isZero(state.B)) {
+      rows.push(['d-spacing, plane B', fmt(Lattice.dSpacing(lat, state.B), ' Å')]);
+      if (!isZero(state.A)) rows.push(['Angle between A and B', fmt(Lattice.planeAngle(lat, state.A, state.B), '°')]);
+    }
+    $('readout').innerHTML = rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
+    viewer && viewer.redraw();
+  }
+
+  function loadMaterial(key) {
+    const m = MATERIALS[key];
+    const typeChanged = !MATERIALS[state.mat] || MATERIALS[state.mat].type !== m.type;
+    state.mat = key; state.a = m.a; state.c = m.c || m.a;
+    $('mat').value = key; $('la').value = m.a; $('lc').value = m.c || '';
+    $('cField').hidden = m.type === 'cubic';
+    if (typeChanged) {
+      const ps = PRESETS[m.type];
+      state.A = ps[1].hkl.slice(); state.B = ps[0].hkl.slice();
+    }
+    lat = Lattice.makeLattice(m.type, state.a, state.c);
+    buildIndexInputs('A'); buildIndexInputs('B'); buildChips('A'); buildChips('B');
+    update();
+  }
+
+  $('mat').addEventListener('change', (e) => loadMaterial(e.target.value));
+  $('la').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v > 0) { state.a = v; if (type() === 'cubic') state.c = v; update(); } });
+  $('lc').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v > 0) { state.c = v; update(); } });
+  $('showB').addEventListener('change', (e) => { state.showB = e.target.checked; update(); });
+  $('family').addEventListener('change', (e) => { state.family = e.target.checked; update(); });
+
+  let viewer = null;
+  loadMaterial('sapphire');
+  viewer = Lattice.attachViewer($('cv'), () => ({
+    lat,
+    planes: [
+      isZero(state.A) ? null : { hkl: state.A, color: '--plane-a', showFamily: state.family },
+      state.showB && !isZero(state.B) ? { hkl: state.B, color: '--plane-b', showFamily: state.family } : null,
+    ],
+  }), { yaw: -0.55, pitch: 0.28 });
+})();
+</script>
+</body>
+</html>

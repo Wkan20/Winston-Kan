@@ -1,0 +1,226 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Winston Kan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="Winston Kan, Materials Science and Engineering at RPI. Thin films, crystallography, and a path into semiconductor manufacturing.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a lab-notebook portfolio. Hero pairs the name with a live sapphire cell; sections below run on a left label column + right content column. */
+:root {
+  --bg: #eef1f4;
+  --surface: #f9fafb;
+  --fg: #141b2b;
+  --muted: #5a6476;
+  --line: #cfd6df;
+  --cell: #8a95a8;
+  --plane-a: #1d4fd8;
+  --plane-b: #c26a07;
+  --focus: #1d4fd8;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
+    --cell: #6c7891; --plane-a: #6f9bff; --plane-b: #f0a23b; --focus: #8fb1ff; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
+  --cell: #6c7891; --plane-a: #6f9bff; --plane-b: #f0a23b; --focus: #8fb1ff; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font-body); }
+.wrap {
+  max-width: 1080px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+a { color: var(--plane-a); text-underline-offset: 3px; }
+a:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
+.mono { font-family: var(--font-mono); }
+.bar { text-decoration: overline; }
+
+/* ---------- hero ---------- */
+.hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: center; padding-block: 56px 40px; }
+@media (max-width: 820px) { .hero { grid-template-columns: 1fr; padding-block: 36px 24px; } }
+.hero .eyebrow { font: 500 12px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
+.hero h1 {
+  font-family: var(--font-display); font-weight: 800; font-stretch: 125%;
+  font-size: clamp(46px, 9vw, 92px); line-height: .92; letter-spacing: -.02em; margin: 14px 0 18px;
+}
+.hero .statement { font-size: clamp(18px, 2.2vw, 21px); line-height: 1.45; max-width: 34ch; margin: 0; text-wrap: pretty; }
+.hero .facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 22px; font: 14px var(--font-mono); color: var(--muted); }
+.specimen { margin: 0; }
+.specimen .frame { aspect-ratio: 1 / 1; max-width: 100%; width: 100%; max-height: 460px; position: relative; }
+.specimen canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.specimen figcaption { font: 13px var(--font-mono); color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
+.specimen figcaption b { color: var(--plane-a); font-weight: 600; }
+
+/* ---------- sections ---------- */
+section.block { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px 40px; border-top: 1px solid var(--line); padding-block: 40px; }
+@media (max-width: 820px) { section.block { grid-template-columns: 1fr; padding-block: 28px; } }
+.label { font: 600 12px/1.4 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 6px; }
+h2 { font-family: var(--font-display); font-weight: 750; font-stretch: 110%; font-size: clamp(26px, 3.6vw, 34px); line-height: 1.05; margin: 0 0 12px; text-wrap: balance; }
+h3 { font-family: var(--font-display); font-weight: 700; font-stretch: 105%; font-size: 19px; line-height: 1.25; margin: 0; text-wrap: balance; }
+p { margin: 0; max-width: 64ch; }
+.muted { color: var(--muted); }
+
+/* featured project */
+.project { display: grid; gap: 18px; }
+.project .what { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 6px; }
+@media (max-width: 680px) { .project .what { grid-template-columns: 1fr; } }
+.project .what div { border-top: 2px solid var(--plane-a); padding-top: 10px; }
+.project .what h4 { font: 600 14px var(--font-body); margin: 0 0 4px; }
+.project .what p { font-size: 14px; color: var(--muted); }
+.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  display: inline-block; font: 600 15px var(--font-body); text-decoration: none;
+  padding: 10px 18px; border-radius: 4px; background: var(--plane-a); color: var(--bg);
+}
+.btn:hover { filter: brightness(1.08); }
+.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
+.tags { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag { font: 12px var(--font-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 2px 7px; }
+
+/* log entries */
+.log { display: grid; gap: 28px; }
+.entry { display: grid; gap: 8px; }
+.entry .meta { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; }
+.status { font: 600 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 7px; border-radius: 3px; border: 1px solid currentColor; }
+.status.now { color: var(--plane-a); }
+.status.done { color: var(--muted); }
+.status.next { color: var(--plane-b); }
+.when { font: 13px var(--font-mono); color: var(--muted); }
+.entry ul { margin: 2px 0 0; padding-left: 18px; max-width: 64ch; }
+.entry li { margin: 3px 0; }
+.entry li::marker { color: var(--muted); }
+
+.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
+@media (max-width: 680px) { .cols { grid-template-columns: 1fr; } }
+.cols h3 { font-size: 16px; margin-bottom: 6px; }
+.list { list-style: none; margin: 0; padding: 0; }
+.list li { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
+.list li span:last-child { color: var(--muted); font: 13px var(--font-mono); white-space: nowrap; }
+
+footer { border-top: 1px solid var(--line); padding-block: 28px 48px; font: 13px var(--font-mono); color: var(--muted); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div>
+      <div class="eyebrow">Materials Science &amp; Engineering · RPI · Class of 2029</div>
+      <h1>Winston Kan</h1>
+      <p class="statement">I work in a thin films lab and I'm building toward semiconductor manufacturing: deposition, metrology, and failure analysis.</p>
+      <div class="facts"><span>Troy, NY</span><span>Open to summer 2027 internships</span></div>
+    </div>
+    <figure class="specimen">
+      <div class="frame"><canvas id="hero" aria-label="Rotating sapphire unit cell with the R-plane drawn through it"></canvas></div>
+      <figcaption><span>Sapphire, <b>R-plane <span class="mono">(1<span class="bar">1</span>02)</span></b></span><span>drag to rotate</span></figcaption>
+    </figure>
+  </header>
+
+  <section class="block" id="project">
+    <div class="label">Featured project</div>
+    <div class="project">
+      <div>
+        <h2>Substrate Plane Viewer</h2>
+        <p>In the lab we grow films on both C-plane and R-plane sapphire. I could recite the Miller indices but couldn't picture what those cuts actually look like inside the crystal, so I built a tool that draws them. It takes any plane in a cubic or hexagonal crystal, slices it through the unit cell in 3D, and reports the plane spacing and the angle to a second plane.</p>
+      </div>
+      <div class="what">
+        <div><h4>The math</h4><p>Each plane is the set of points where the reciprocal-lattice vector G satisfies G·r = n. Its length gives d = 1/|G|.</p></div>
+        <div><h4>The check</h4><p>Results match reference values: R-plane sapphire d = 3.48 Å, 57.6° from C-plane; Si (111) d = 3.136 Å.</p></div>
+        <div><h4>The use</h4><p>Comparing substrate cuts before a growth, and reading XRD peaks against the planes that produce them.</p></div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="visualizer.html">Open the viewer</a>
+        <div class="tags"><span class="tag">JavaScript</span><span class="tag">Canvas 2D</span><span class="tag">Crystallography</span><span class="tag">Miller–Bravais indices</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="experience">
+    <div class="label">Research &amp; lab work</div>
+    <div class="log">
+      <article class="entry">
+        <div class="meta"><span class="status now">Current</span><span class="when">Fall 2026</span></div>
+        <h3>Thin films lab</h3>
+        <ul>
+          <li>Moving samples from the load chamber into the main deposition chamber under vacuum.</li>
+          <li>Growing on C-plane and R-plane sapphire and seeing how the substrate templates the film.</li>
+          <li>Comparing amorphous films against crystalline substrates, and using annealing to change film structure.</li>
+          <li>Learning the system hardware, including the heater and heat shield assembly in the beta chamber, and why heating has to ramp up slowly.</li>
+        </ul>
+      </article>
+      <article class="entry">
+        <div class="meta"><span class="status now">In progress</span><span class="when">Independent project</span></div>
+        <h3>YBCO superconductor</h3>
+        <p>Synthesizing YBa₂Cu₃O₇ and testing for superconductivity with liquid nitrogen. YBCO goes superconducting around 92 K, above nitrogen's 77 K boiling point, which makes it testable outside a cryogenics lab. Reagents are sourced.</p>
+      </article>
+      <article class="entry">
+        <div class="meta"><span class="status done">Completed</span><span class="when">Computational</span></div>
+        <h3>Polymer chain modeling</h3>
+        <p>Introductory molecular modeling of basic polymer chains, visualized in OVITO with LAMMPS. It showed me how simulation connects to structure, and made me want hands-on lab time to match it.</p>
+      </article>
+      <article class="entry">
+        <div class="meta"><span class="status done">Spring 2026</span></div>
+        <h3>GlobalFoundries fab tour</h3>
+        <p>Seeing wafer fabrication at scale is what turned semiconductor manufacturing from an abstraction into the place I want to work.</p>
+      </article>
+    </div>
+  </section>
+
+  <section class="block" id="coursework">
+    <div class="label">Coursework &amp; skills</div>
+    <div class="cols">
+      <div>
+        <h3>Courses</h3>
+        <ul class="list">
+          <li><span>Structures of Materials</span><span>Fall 2026</span></li>
+          <li><span>Semiconductor &amp; electronic materials</span><span>Spring 2027</span></li>
+          <li><span>Semiconductor textbooks, self-study</span><span>Ongoing</span></li>
+        </ul>
+      </div>
+      <div>
+        <h3>Tools &amp; techniques</h3>
+        <ul class="list">
+          <li><span>Vacuum deposition systems</span><span>Lab</span></li>
+          <li><span>Annealing</span><span>Lab</span></li>
+          <li><span>LAMMPS, OVITO</span><span>Computational</span></li>
+          <li><span>JavaScript, Git</span><span>This site</span></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="block" id="next">
+    <div class="label">Looking for</div>
+    <div>
+      <h2>Fab experience</h2>
+      <p>I'm looking for summer 2027 internships in module, process, or metrology engineering, where I can get hands-on time with lithography, deposition, and characterization tools at production scale.</p>
+    </div>
+  </section>
+
+  <footer>Winston Kan · Built with HTML, CSS, and JavaScript · Crystal drawings rendered live by the Substrate Plane Viewer</footer>
+</div>
+
+<script src="lattice.js"></script>
+<script>
+  const sapphire = Lattice.makeLattice('hexagonal', 4.759, 12.991);
+  Lattice.attachViewer(document.getElementById('hero'), () => ({
+    lat: sapphire,
+    planes: [{ hkl: [1, -1, 2], color: '--plane-a', showFamily: true }],
+    opts: { fill: 0.44 },
+  }), { yaw: -0.5, pitch: 0.25, autoSpin: true });
+</script>
+</body>
+</html>
