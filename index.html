@@ -54,6 +54,7 @@ a:hover { text-decoration-thickness: 3px; }
 .wafer .edge { fill: none; stroke: var(--ink); stroke-width: .6; opacity: .55; }
 .wafer .words { position: relative; text-align: center; padding: 0 14%; display: grid; gap: .6em; transform: translateY(-3%); }
 h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.6rem, 12vmin, 6rem); line-height: .86; letter-spacing: -.01em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+.early { max-width: 62ch; margin: 22px auto 0; text-align: center; font-size: 15.5px; line-height: 1.55; color: var(--ink-soft, rgba(23,20,31,.8)); text-wrap: pretty; padding: 0 16px; }
 .wafer .words p { margin: 0 auto; max-width: 30ch; font-size: clamp(15px, 2.1vmin, 18px); line-height: 1.45; text-wrap: balance; }
 .wafer .flatnote { position: absolute; bottom: -1.6em; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
 
@@ -144,7 +145,7 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
       </svg>
       <div class="words">
         <h1>Winston Kan</h1>
-        <p>Materials science student building working simulations of the physics behind thin films and chips.</p>
+        <p>Second-year materials science student at RPI, learning how thin films and chips are made.</p>
       </div>
       <div class="flatnote">SiO₂ film on a silicon wafer</div>
     </div>
@@ -161,6 +162,7 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
     </div>
     <div class="ticks num" aria-hidden="true"><span style="left:0">0 nm</span><span class="odd" style="left:16.667%">100</span><span style="left:33.333%">200</span><span class="odd" style="left:50%">300</span><span style="left:66.667%">400</span><span class="odd" style="left:83.333%">500</span><span style="left:100%">600 nm</span></div>
   </div>
+  <p class="early">I’m still early in my studies. Each project here started with something from class or lab that I didn’t understand yet, and building it was how I learned it. They use standard textbook models checked against published numbers: study tools, not research.</p>
   <a class="down" href="#projects">See the projects <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
 </header>
 
@@ -170,7 +172,7 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
     <div class="work">
       <div>
         <h2 id="t-viewer">Substrate Plane Viewer</h2>
-        <p>Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. I could recite the Miller indices but couldn’t picture the cuts, so I built a tool that slices any plane through a cubic or hexagonal unit cell in 3D.</p>
+        <p>Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. When I first met Miller indices I could write them down but couldn’t picture the cuts, so I built a tool that slices any plane through a cubic or hexagonal unit cell in 3D.</p>
         <dl class="facts">
           <div><dt>Model</dt><dd>Planes from the reciprocal-lattice vector G; spacing d = 1/|G|.</dd></div>
           <div><dt>Checked</dt><dd>Sapphire R-plane d = 3.48 Å and 57.6° from C-plane; Si (111) d = 3.136 Å.</dd></div>
@@ -186,7 +188,7 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
     <div class="work">
       <div>
         <h2 id="t-pvd">Sputter Chamber Simulator</h2>
-        <p>A beginner’s 3D tour of a two-gun sputtering machine, then a simulator of it. Choose metals, stack layers, and change the gas, heat, distance, and tilt; the simulator follows each atom from the target to the sample and grows the coating one atom at a time.</p>
+        <p>I built this to understand the sputtering machine I’m starting to use in lab: a beginner’s 3D tour of a two-gun system, then a simplified simulator of it. Choose metals, stack layers, and change the gas, heat, distance, and tilt; the simulator follows each atom from the target to the sample and grows the coating one atom at a time.</p>
         <dl class="facts">
           <div><dt>Model</dt><dd>Gas mean free path from kinetic theory, deposition rate from sputter yield and power, surface diffusion set by temperature ÷ melting point, and Thornton’s structure zones.</dd></div>
           <div><dt>Checked</dt><dd>Lower pressure and hotter substrates give denser films; tungsten stays porous where copper and aluminum densify; GLAD columns only form at low pressure.</dd></div>
@@ -202,7 +204,7 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
     <div class="work">
       <div>
         <h2 id="t-rho">Thin-Wire Resistivity</h2>
-        <p>Copper is the best wiring metal in bulk, but in a film a few nanometers thick its electrons keep hitting surfaces and grain boundaries, and its resistance climbs. This explorer models that size effect for six chip-wiring metals and shows where copper stops being the best choice.</p>
+        <p>Copper is the best wiring metal in bulk, but in a film a few nanometers thick its electrons keep hitting surfaces and grain boundaries, and its resistance climbs. I made this explorer while reading about that size effect; it applies the standard models to six chip-wiring metals and shows where copper stops being the best choice.</p>
         <dl class="facts">
           <div><dt>Model</dt><dd>Fuchs–Sondheimer surface scattering plus Mayadas–Shatzkes grain-boundary scattering.</dd></div>
           <div><dt>Checked</dt><dd>Matches the thick-film limit 1 + 3λ(1−p)/8d to within 0.2%; fits recover known parameters.</dd></div>
@@ -221,11 +223,11 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
         <article>
           <h3>Thin films lab</h3>
           <div class="when">Fall 2026 – now</div>
-          <p>Undergraduate researcher in a sputter-deposition lab. Hands-on time with vacuum deposition and annealing, and seeing how substrate orientation shapes film growth.</p>
+          <p>Newer undergraduate member of a sputter-deposition lab, learning vacuum deposition and annealing alongside graduate students and starting to see how substrate orientation shapes film growth.</p>
         </article>
         <article>
           <h3>Polymer chain modeling</h3>
-          <p>Introductory molecular modeling of basic polymer chains with LAMMPS, visualized in OVITO.</p>
+          <p>My first try at computational work: introductory modeling of basic polymer chains with LAMMPS, visualized in OVITO.</p>
         </article>
       </div>
     </div>
@@ -235,7 +237,7 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
     <div class="swatch"><div class="nm num">600<small>nm</small></div><div class="name">Carnation pink</div><div class="stack">SiO₂ on Si · the chart repeats</div></div>
     <div>
       <h2 id="t-next">Looking for fab time</h2>
-      <p>I’m looking for summer 2027 internships in module, process, or metrology engineering: hands-on time with deposition, lithography, and characterization at production scale.</p>
+      <p>I’m looking for a summer 2027 internship in module, process, or metrology engineering, somewhere I can learn deposition, lithography, and characterization at production scale from people who do it every day.</p>
     </div>
   </section>
 </main>
