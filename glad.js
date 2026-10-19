@@ -90,9 +90,29 @@
     const order = new Int32Array(W * H);
     // optional label per atom (e.g. which gun it came from), in arrival order
     const tags = new Int8Array(W * H);
+    // CRYSTAL GRAINS. Every atom belongs to a grain with a crystal orientation.
+    // Grain 0 is lined up with the substrate's crystal (epitaxial). A new atom joins
+    // the grain of the atoms it lands on; sometimes it starts a new grain instead
+    // (nucleation). On the bare substrate, opts.epi(rand) decides whether it copies
+    // the substrate (grain 0) or starts a randomly turned grain.
+    const cellGrain = new Int32Array(W * H);   // grain id per cell (valid where filled)
+    const grains = new Int32Array(W * H);      // grain id per atom, in arrival order
+    const grainAngle = [0];                    // orientation of each grain, degrees from the substrate's
+    let lined = 0;                             // atoms in grain 0
+    function newGrain() { grainAngle.push(Math.round((rand() * 2 - 1) * 45)); return grainAngle.length - 1; }
+    function pickGrain(x, y, a) {
+      if (a && a.renucleate && rand() < a.renucleate) return newGrain();
+      const votes = new Map();
+      const vote = (nx, ny, w) => { if (ny >= 0 && ny < H && filled(nx, ny)) { const g = cellGrain[ny * W + wrap(nx)]; votes.set(g, (votes.get(g) || 0) + w); } };
+      vote(x, y - 1, 3); vote(x - 1, y, 1); vote(x + 1, y, 1); vote(x - 1, y - 1, 1); vote(x + 1, y - 1, 1);
+      if (votes.size) { let best = -1, bw = -1; for (const [g, w] of votes) if (w > bw || (w === bw && rand() < 0.5)) { best = g; bw = w; } return best; }
+      if (y === 0) return opts.epi && opts.epi(rand) ? 0 : newGrain();
+      return newGrain();
+    }
 
-    function place(x, y, tag = 0) {
+    function place(x, y, tag = 0, grain = 0) {
       tags[count] = tag;
+      grains[count] = grain; cellGrain[y * W + x] = grain; if (grain === 0) lined++;
       order[count] = y * W + x;
       grid[y * W + x] = ++count;
       if (y + 1 > colTop[x]) colTop[x] = y + 1;
@@ -159,7 +179,7 @@
       const hops = a ? a.hops : mobility;
       if (hops > 0) [x, y] = hop(x, y, hops);
       if (filled(x, y)) return true; // rare collision after a hop; skip this atom
-      place(x, y, a && a.tag ? a.tag : 0);
+      place(x, y, a && a.tag ? a.tag : 0, pickGrain(x, y, a));
       return true;
     }
 
@@ -228,7 +248,8 @@
     }
 
     return {
-      W, H, grid, colTop, order, tags,
+      W, H, grid, colTop, order, tags, grains, grainAngle,
+      linedUp: () => (count ? lined / count : NaN),
       step,
       get count() { return count; },
       get full() { return full; },

@@ -27,6 +27,7 @@
   --hit1: #e09a1a;       /* flight: 1–3 gas hits, nudged */
   --hit4: #d4483b;       /* flight: 4+ gas hits, slowed and wandering */
   --argon: #b47fd6;      /* argon gas atoms */
+  --epi: #12867f;        /* grain lined up with the substrate crystal */
   --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
   color-scheme: light;
@@ -67,6 +68,10 @@ h1 { font: 900 clamp(46px, 8vw, 96px)/.86 var(--font-display); text-transform: u
 canvas { display: block; width: 100%; height: auto; max-width: 100%; }
 #chamber { aspect-ratio: 4 / 3.4; }
 #film { aspect-ratio: 360 / 240; image-rendering: pixelated; border-radius: 2px; }
+.cardhead { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 3px; overflow: hidden; }
+.seg button { font: 600 12px var(--font-body); color: var(--ink-soft); background: transparent; border: 0; padding: 4px 10px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--plot); }
 .legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
 .legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
 .legend i.full { background: var(--ink); }
@@ -283,7 +288,7 @@ button.icon svg { width: 14px; height: 14px; }
     <div class="exps">
       <div class="exp">
         <h3>Why heat the MgO to 900 °C?</h3>
-        <p>Same Mo run, hot vs. room temperature. Watch “Lines up with the sample’s crystal?” and the gaps.</p>
+        <p>Same Mo run, hot vs. room temperature. Hot grows as one teal crystal; cold breaks into many small grains.</p>
         <div class="pairbtn"><button type="button" data-run="moHot">900 °C</button><button type="button" data-run="moCold">Room temp</button></div>
       </div>
       <div class="exp">
@@ -293,7 +298,7 @@ button.icon svg { width: 14px; height: 14px; }
       </div>
       <div class="exp">
         <h3>Why use so little gas?</h3>
-        <p>Copper with a little argon, then a lot. Watch “Atoms that fly straight” and the gaps.</p>
+        <p>Copper with a little argon, then a lot. Watch the hit colors and the gaps.</p>
         <div class="pairbtn"><button type="button" data-run="cuLow">1 mTorr</button><button type="button" data-run="cuHigh">20 mTorr</button></div>
       </div>
       <div class="exp">
@@ -320,7 +325,8 @@ button.icon svg { width: 14px; height: 14px; }
           <div class="timebar"><span id="timeSlow">Slow motion</span><span id="timeClock">machine time 0 µs</span></div>
         </div>
         <div class="card">
-          <h2>The coating, up close</h2>
+          <div class="cardhead"><h2>The coating, up close</h2>
+            <div class="seg" role="group" aria-label="Color the coating by"><button type="button" id="viewGrain" aria-pressed="true">Crystal</button><button type="button" id="viewMetal" aria-pressed="false">Metal</button></div></div>
           <p class="sub" id="filmSub">Cross-section, 90 nm wide.</p>
           <canvas id="film" aria-label="Cross-section of the growing film, colored by which gun each atom came from"></canvas>
           <div class="legend" id="filmLegend"></div>
@@ -444,10 +450,10 @@ button.icon svg { width: 14px; height: 14px; }
 </section>
 </main>
 
-<script src="glad.js?v=5"></script>
-<script src="pvd.js?v=5"></script>
+<script src="glad.js?v=6"></script>
+<script src="pvd.js?v=6"></script>
 <script src="vendor/three.min.js"></script>
-<script src="tour.js?v=5"></script>
+<script src="tour.js?v=6"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -572,6 +578,8 @@ button.icon svg { width: 14px; height: 14px; }
   $('mat1').addEventListener('change', (e) => { state.guns[1].material = e.target.value; changed(0); });
   $('rotation').addEventListener('change', (e) => { state.rotation = e.target.value; changed(0); });
   $('regrow').addEventListener('click', () => { seed++; restart(); });
+  $('viewGrain').addEventListener('click', () => setView('grain'));
+  $('viewMetal').addEventListener('click', () => setView('metal'));
 
   // ---------- film growth: one source per gun, switched layer by layer ----------
   let perFrame = 60, sim = null, seed = 11, drawn = 0, done = false, sources = [], bounds = [], layerNow = 0;
@@ -581,13 +589,24 @@ button.icon svg { width: 14px; height: 14px; }
   const VOID = [236, 235, 245];
   const SUBCOLOR = { mgo: '#8f8aa6', sio2: '#3b3650', glass: '#a9b0cf' };
   const GUNRGB = [[23, 20, 31], [42, 120, 214]];
+  const EPI = [18, 134, 127];
+  const GRAINRGB = [[190, 184, 206], [146, 139, 168], [214, 202, 170], [167, 184, 201], [201, 169, 181], [160, 168, 152], [178, 160, 196], [222, 214, 196]];
+  let view = 'grain';
+  const atomColor = (i) => view === 'metal' ? GUNRGB[(sim.tags[i] || 1) - 1] : sim.grains[i] === 0 ? EPI : GRAINRGB[sim.grains[i] % GRAINRGB.length];
+  function setView(v) {
+    view = v; $('viewGrain').setAttribute('aria-pressed', String(v === 'grain')); $('viewMetal').setAttribute('aria-pressed', String(v === 'metal'));
+    for (let i = 0; i < FW * FH; i++) setPx(i, VOID);
+    drawn = 0; paint(); updateNumbers();
+  }
   function setPx(idx, c) { const x = idx % FW, y = (idx / FW) | 0, p = ((FH - 1 - y) * FW + x) * 4; img.data[p] = c[0]; img.data[p + 1] = c[1]; img.data[p + 2] = c[2]; img.data[p + 3] = 255; }
   function restart() {
     sources = [0, 1].map((i) => { const s = gunState(i); return PVD.atomSource(s, PVD.analyze(s)); });
     let acc = 0; bounds = state.recipe.map((l) => (acc += l.nm) / NM_PER_ATOM);
     layerNow = 0;
     const recipe = clone(state.recipe); // the run keeps its own copy until the next restart
-    sim = Glad.createSim({ width: FW, height: FH, seed, source: (rand, layers) => {
+    const g0 = recipe[0].gun, ep0 = PVD.epitaxy(state.guns[g0].material, state.substrate, PVD.homologous(gunState(g0)));
+    const pEpi = { Likely: 0.98, 'Too cold': 0.3, Unlikely: 0.05 }[ep0.verdict] || 0;
+    sim = Glad.createSim({ width: FW, height: FH, seed, epi: (r) => r() < pEpi, source: (rand, layers) => {
       const g = recipe[Math.min(layerNow, recipe.length - 1)].gun;
       const a = sources[g](rand, layers); a.tag = g + 1; return a;
     } });
@@ -607,7 +626,7 @@ button.icon svg { width: 14px; height: 14px; }
     if (sim.full || sim.thickness() >= stopRows()) done = true;
   }
   function paint() {
-    for (; drawn < sim.count; drawn++) setPx(sim.order[drawn], GUNRGB[(sim.tags[drawn] || 1) - 1]);
+    for (; drawn < sim.count; drawn++) setPx(sim.order[drawn], atomColor(drawn));
     fctx.putImageData(img, 0, 0);
     fctx.fillStyle = SUBCOLOR[state.substrate]; fctx.fillRect(0, FH - 3, FW, 3);
   }
@@ -652,11 +671,14 @@ button.icon svg { width: 14px; height: 14px; }
     $('rC').innerHTML = `${tilt}<small>${why}</small>`;
     const bottom = state.recipe[0].gun;
     const ep = PVD.epitaxy(state.guns[bottom].material, state.substrate, A[bottom].th);
-    $('rE').innerHTML = `${ep.verdict}`;
+    const lu = sim ? sim.linedUp() : NaN;
+    $('rE').innerHTML = `${ep.verdict}${Number.isFinite(lu) ? `<small>${Math.round(lu * 100)}% of atoms lined up</small>` : ''}`;
     const active = state.recipe[Math.min(layerNow, state.recipe.length - 1)];
     $('filmSub').textContent = `A slice through the coating, 90 nm wide (about a thousandth of a hair). ${done ? 'Finished.' : `Growing layer ${layerNow + 1} of ${state.recipe.length}: ${name(active.gun).toLowerCase()}.`}`;
     $('chamberSub').textContent = `Each dot is a metal atom, colored by how many argon atoms it hit. ${done ? 'Guns off.' : `Gun ${active.gun + 1} is on.`}`;
-    $('filmLegend').innerHTML = used.map((g) => `<span><i class="sq" style="background:var(--gun${g + 1})"></i>${M[g].name} from gun ${g + 1}</span>`).join('') + '<span><i class="sq" style="background:var(--void);box-shadow:inset 0 0 0 1px var(--rule)"></i>empty gaps</span>';
+    $('filmLegend').innerHTML = view === 'grain'
+      ? '<span><i class="sq" style="background:var(--epi)"></i>lined up with the sample’s crystal</span><span><i class="sq" style="background:#928ba8"></i>other grains, each turned a different way</span><span><i class="sq" style="background:var(--void);box-shadow:inset 0 0 0 1px var(--rule)"></i>gaps</span>'
+      : used.map((g) => `<span><i class="sq" style="background:var(--gun${g + 1})"></i>${M[g].name} from gun ${g + 1}</span>`).join('') + '<span><i class="sq" style="background:var(--void);box-shadow:inset 0 0 0 1px var(--rule)"></i>empty gaps</span>';
     story(A, M, used);
   }
   function story(A, M, used) {
@@ -704,7 +726,7 @@ button.icon svg { width: 14px; height: 14px; }
   // Hits with argon are elastic collisions with a resting argon atom: a heavy
   // metal atom barely turns, a light one can bounce right back.
   const SLOW = 60000;
-  let clock = 0, tally = [], pile = [];   // pile: landed atoms stacked on the sample, by column
+  let clock = 0, tally = [], pile = [];   // pile: one entry per atom that landed on the sample
   const HITCOL = (n) => css(n === 0 ? '--hit0' : n < 4 ? '--hit1' : '--hit4');
   function spawn(G, g, A) {
     const gun = G.guns[g], mat = state.guns[g].material;
@@ -762,21 +784,20 @@ button.icon svg { width: 14px; height: 14px; }
     }
     parts = parts.filter((p) => !(p.end && p.endAge > 0.8));
   }
-  function land(G, p) {
-    const cols = 14;
-    const c = Math.max(0, Math.min(cols - 1, Math.floor(((p.lx + G.sub.half * 0.8) / (G.sub.half * 1.6)) * cols)));
-    if (pile.length !== cols) pile = Array.from({ length: cols }, () => []);
-    pile[c].push(Math.min(p.hits, 4));
-    if (pile[c].length > 10) pile[c].shift();
-  }
+  function land() { pile.push(1); }
   function drawPile(ctx, G) {
-    // landed atoms, stacked as little blocks on top of the sample, in the color they arrived with
+    // the coating as one layer that slowly thickens (thickness hugely exaggerated). Teal and even
+    // when it grows lined up with the crystal; a patchwork of grains when it doesn't.
     if (!pile.length) return;
+    const lu = sim ? sim.linedUp() : 0;
+    const th = Math.min(6, 1 + pile.length * 0.06), x0 = -G.sub.half * 0.8, w = G.sub.half * 1.6, n = 16;
     ctx.save(); ctx.translate(G.sub.x, G.sub.y + 4); ctx.rotate(-state.tilt * Math.PI / 180);
-    const w = (G.sub.half * 1.6) / pile.length;
-    pile.forEach((col, i) => col.forEach((h, j) => {
-      ctx.fillStyle = HITCOL(h); ctx.fillRect(-G.sub.half * 0.8 + i * w + 0.5, -3 - (j + 1) * 4.2, w - 1, 3.6);
-    }));
+    for (let i = 0; i < n; i++) {
+      const epi = ((i * 7919) % 100) / 100 < lu;
+      const c = epi ? EPI : GRAINRGB[(i * 5) % GRAINRGB.length];
+      ctx.fillStyle = `rgb(${c[0]},${c[1]},${c[2]})`;
+      ctx.fillRect(x0 + (i * w) / n, -3 - th, w / n + 0.5, th);
+    }
     ctx.restore();
   }
   function drawParts(ctx) {
@@ -899,7 +920,7 @@ button.icon svg { width: 14px; height: 14px; }
     ctx.strokeStyle = 'rgba(23,20,31,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
     ctx.beginPath(); ctx.moveTo(dg.x, dg.y); ctx.lineTo(G.sub.x, G.sub.y); ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle = css('--ink-soft'); ctx.textAlign = 'center';
-    const mx = dg.x + (G.sub.x - dg.x) * 0.62 + (dg.x < G.sub.x ? -26 : 26), my = dg.y + (G.sub.y - dg.y) * 0.62;
+    const mx = dg.x + (G.sub.x - dg.x) * 0.55 + (dg.x < G.sub.x ? 26 : -26), my = dg.y + (G.sub.y - dg.y) * 0.55 + 14;
     ctx.fillText(`${state.distance} cm`, mx, my);
 
     drawRulers(ctx, G);

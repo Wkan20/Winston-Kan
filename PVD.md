@@ -34,6 +34,10 @@ The sample can be an MgO(001) crystal, a silicon wafer with oxide, or glass. Oxi
 
 Each atom launches at its real speed for 5 eV (copper ≈ 3.9 km/s) and is shown 60,000× slower, with a clock for real elapsed time. Gaps between argon hits are drawn at random around the mean free path, using the scale bar in the corner. Each hit is an elastic collision with a resting argon atom (random centre-of-mass angle), so heavy atoms barely turn and light ones can bounce back; speed never drops below the gas's thermal speed. Colors: green = no hits, amber = 1–3 hits, red = 4+ hits. A tally shows where recent atoms ended up, and the readout bar shows the predicted split from Poisson statistics.
 
+## Crystal grains (epitaxy)
+
+Each atom in the close-up belongs to a grain. It joins the grain of the atoms it lands on, or occasionally starts a new one (more often on a cold sample). On the bare substrate it copies the substrate's crystal with a chance set by the epitaxy check: 98% when "Likely", 30% when "Too cold", 5% when "Unlikely", 0 on amorphous oxide or glass. Teal = lined up with the substrate; other shades = grains turned other ways. Hot Mo on MgO grows ~100% lined up; room temperature ~25%; glass 0%.
+
 ## The physics in the model
 
 **Mean free path.** From kinetic theory, the average distance between collisions is

@@ -210,7 +210,9 @@
       // straight-line arrivals carry more energy and nudge atoms into place
       const m = a.mobility + (ballistic ? ENERGETIC_BONUS : 0);
       const hops = Math.floor(m) + (rand() < m - Math.floor(m) ? 1 : 0);
-      return { slope, hops };
+      // new grains start more often on a cold sample, where atoms can't reach an existing crystal
+      const cold = 1 - Math.min(1, Math.max(0, (homologous(s) - 0.15) / 0.3));
+      return { slope, hops, renucleate: 0.0004 + 0.02 * cold * cold };
     };
   }
 
