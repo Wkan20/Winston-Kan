@@ -120,12 +120,12 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; font: 13px
     <div>
       <div class="eyebrow">Materials Science &amp; Engineering · RPI · Class of 2029</div>
       <h1>Winston Kan</h1>
-      <p class="statement">I work in a thin films lab and I'm building toward semiconductor manufacturing: deposition, metrology, and failure analysis.</p>
+      <p class="statement">I'm a materials science student building toward semiconductor manufacturing: process engineering, metrology, and failure analysis.</p>
       <div class="facts"><span>Troy, NY</span><span>Open to summer 2027 internships</span></div>
     </div>
     <figure class="specimen">
-      <div class="frame"><canvas id="hero" aria-label="Rotating sapphire unit cell with the R-plane drawn through it"></canvas></div>
-      <figcaption><span>Sapphire, <b>R-plane <span class="mono">(1<span class="bar">1</span>02)</span></b></span><span>drag to rotate</span></figcaption>
+      <div class="frame"><canvas id="hero" aria-label="Rotating silicon unit cell with (111) planes drawn through it"></canvas></div>
+      <figcaption><span>Silicon, <b><span class="mono">(111)</span> planes</b></span><span>drag to rotate</span></figcaption>
     </figure>
   </header>
 
@@ -134,12 +134,12 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; font: 13px
     <div class="project">
       <div>
         <h2>Substrate Plane Viewer</h2>
-        <p>In the lab we grow films on both C-plane and R-plane sapphire. I could recite the Miller indices but couldn't picture what those cuts actually look like inside the crystal, so I built a tool that draws them. It takes any plane in a cubic or hexagonal crystal, slices it through the unit cell in 3D, and reports the plane spacing and the angle to a second plane.</p>
+        <p>Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. I could recite those Miller indices but couldn't picture the cuts inside the crystal, so I built a tool that draws them. It takes any plane in a cubic or hexagonal crystal, slices it through the unit cell in 3D, and reports the plane spacing and the angle to a second plane.</p>
       </div>
       <div class="what">
         <div><h4>The math</h4><p>Each plane is the set of points where the reciprocal-lattice vector G satisfies G·r = n. Its length gives d = 1/|G|.</p></div>
         <div><h4>The check</h4><p>Results match reference values: R-plane sapphire d = 3.48 Å, 57.6° from C-plane; Si (111) d = 3.136 Å.</p></div>
-        <div><h4>The use</h4><p>Comparing substrate cuts before a growth, and reading XRD peaks against the planes that produce them.</p></div>
+        <div><h4>The use</h4><p>Comparing wafer and substrate orientations, and matching XRD peaks to the planes that produce them.</p></div>
       </div>
       <div class="actions">
         <a class="btn" href="visualizer.html">Open the viewer</a>
@@ -149,22 +149,17 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; font: 13px
   </section>
 
   <section class="block" id="experience">
-    <div class="label">Research &amp; lab work</div>
+    <div class="label">Experience</div>
     <div class="log">
-      <article class="entry">
-        <div class="meta"><span class="status now">Current</span><span class="when">Fall 2026</span></div>
-        <h3>Thin films lab</h3>
-        <ul>
-          <li>Moving samples from the load chamber into the main deposition chamber under vacuum.</li>
-          <li>Growing on C-plane and R-plane sapphire and seeing how the substrate templates the film.</li>
-          <li>Comparing amorphous films against crystalline substrates, and using annealing to change film structure.</li>
-          <li>Learning the system hardware, including the heater and heat shield assembly in the beta chamber, and why heating has to ramp up slowly.</li>
-        </ul>
-      </article>
       <article class="entry">
         <div class="meta"><span class="status now">In progress</span><span class="when">Independent project</span></div>
         <h3>YBCO superconductor</h3>
         <p>Synthesizing YBa₂Cu₃O₇ and testing for superconductivity with liquid nitrogen. YBCO goes superconducting around 92 K, above nitrogen's 77 K boiling point, which makes it testable outside a cryogenics lab. Reagents are sourced.</p>
+      </article>
+      <article class="entry">
+        <div class="meta"><span class="status now">Current</span><span class="when">Fall 2026</span></div>
+        <h3>Undergraduate researcher, thin films lab</h3>
+        <p>Getting hands-on time with vacuum deposition and annealing, and seeing how substrate orientation shapes film growth.</p>
       </article>
       <article class="entry">
         <div class="meta"><span class="status done">Completed</span><span class="when">Computational</span></div>
@@ -215,12 +210,12 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; font: 13px
 
 <script src="lattice.js"></script>
 <script>
-  const sapphire = Lattice.makeLattice('hexagonal', 4.759, 12.991);
+  const silicon = Lattice.makeLattice('cubic', 5.431);
   Lattice.attachViewer(document.getElementById('hero'), () => ({
-    lat: sapphire,
-    planes: [{ hkl: [1, -1, 2], color: '--plane-a', showFamily: true }],
-    opts: { fill: 0.44 },
-  }), { yaw: -0.5, pitch: 0.25, autoSpin: true });
+    lat: silicon,
+    planes: [{ hkl: [1, 1, 1], color: '--plane-a', showFamily: true }],
+    opts: { fill: 0.42 },
+  }), { yaw: -0.6, pitch: 0.35, autoSpin: true });
 </script>
 </body>
 </html>

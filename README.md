@@ -9,7 +9,7 @@ My portfolio site, plus the main project on it: an interactive viewer for crysta
 
 ## The Substrate Plane Viewer
 
-In my thin films lab we grow on C-plane and R-plane sapphire. This tool shows what those cuts look like inside the crystal.
+Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. This tool shows what those cuts look like inside the crystal.
 
 - Pick a material: sapphire, GaN, ZnO (hexagonal) or Si, MgO, SrTiO₃ (cubic), or type your own lattice constants
 - Enter Miller indices `(h k l)`, or Miller–Bravais `(h k i l)` for hexagonal crystals, where `i = −(h + k)` fills in automatically
@@ -46,7 +46,7 @@ Tip: if you name the repo `<your-username>.github.io`, the site lives at `https:
 
 ## Ideas for what to add next
 
-- Draw atom positions (Al and O) on each plane, not just the plane outline
+- Draw atom positions on each plane, not just the plane outline
 - A lattice-mismatch calculator for a film on a substrate
 - Plot predicted XRD peak positions (2θ) from the d-spacings, using Bragg's law
 - Add YBCO (orthorhombic) once the superconductor project is running

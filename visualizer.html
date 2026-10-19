@@ -195,10 +195,10 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 <script>
 (function () {
   const MATERIALS = {
+    si:       { name: 'Silicon',            type: 'cubic',     a: 5.431 },
     sapphire: { name: 'Sapphire (α-Al₂O₃)', type: 'hexagonal', a: 4.759, c: 12.991 },
     gan:      { name: 'GaN (wurtzite)',     type: 'hexagonal', a: 3.189, c: 5.185 },
     zno:      { name: 'ZnO (wurtzite)',     type: 'hexagonal', a: 3.250, c: 5.207 },
-    si:       { name: 'Silicon',            type: 'cubic',     a: 5.431 },
     mgo:      { name: 'MgO',                type: 'cubic',     a: 4.212 },
     sto:      { name: 'SrTiO₃',             type: 'cubic',     a: 3.905 },
   };
@@ -219,7 +219,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   };
 
   const $ = (id) => document.getElementById(id);
-  const state = { mat: 'sapphire', a: 4.759, c: 12.991, A: [1, -1, 2], B: [0, 0, 1], showB: true, family: true };
+  const state = { mat: '', a: 4.759, c: 12.991, A: [1, -1, 2], B: [0, 0, 1], showB: true, family: true };
   let lat = Lattice.makeLattice('hexagonal', state.a, state.c);
   const type = () => MATERIALS[state.mat].type;
 
@@ -307,7 +307,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     $('cField').hidden = m.type === 'cubic';
     if (typeChanged) {
       const ps = PRESETS[m.type];
-      state.A = ps[1].hkl.slice(); state.B = ps[0].hkl.slice();
+      state.A = ps[m.type === 'cubic' ? 2 : 1].hkl.slice(); state.B = ps[0].hkl.slice();
     }
     lat = Lattice.makeLattice(m.type, state.a, state.c);
     buildIndexInputs('A'); buildIndexInputs('B'); buildChips('A'); buildChips('B');
@@ -321,7 +321,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   $('family').addEventListener('change', (e) => { state.family = e.target.checked; update(); });
 
   let viewer = null;
-  loadMaterial('sapphire');
+  loadMaterial('si');
   viewer = Lattice.attachViewer($('cv'), () => ({
     lat,
     planes: [

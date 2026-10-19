@@ -67,11 +67,11 @@ In `lattice.js`:
 
 ## 5. What I'd say about it in an interview
 
-"In my lab we grow on C- and R-plane sapphire, and I wanted to actually see the difference. I built a viewer from the reciprocal-lattice definition of a plane, which gives the normal and the d-spacing directly, then clipped each plane against the unit cell to draw it. I checked it against known values, like the R-plane spacing of 3.48 Å and its 57.6° tilt from C, before trusting it."
+"Wafers and substrates are cut along specific crystal planes, and I wanted to actually see them. I built a viewer from the reciprocal-lattice definition of a plane, which gives the normal and the d-spacing directly, then clipped each plane against the unit cell to draw it. I checked it against known values, like silicon (111) spacing of 3.136 Å and sapphire R-plane's 57.6° tilt from C-plane, before trusting it."
 
-## Questions to ask in the lab
+## Questions to explore next
 
-- Why does the lab use R-plane sapphire for some growths and C-plane for others?
-- What orientation relationship does our film take on each substrate?
-- When we anneal an amorphous film, what decides whether it crystallizes with a preferred orientation?
-- Why does the heater need to ramp slowly? (Thermal shock to the substrate? Outgassing? Stress on the heater and shield?)
+- Why is (100) silicon the standard for CMOS instead of (111)?
+- Why does KOH etch silicon so much slower on (111) planes, and how does that create 54.7° sidewalls?
+- How does lattice mismatch between a film and its substrate create strain and defects?
+- How do XRD peak positions shift when a film is strained?
