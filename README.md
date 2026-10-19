@@ -51,4 +51,3 @@ Tip: if you name the repo `<your-username>.github.io`, the site lives at `https:
 - Draw atom positions on each plane, not just the plane outline
 - A lattice-mismatch calculator for a film on a substrate
 - Plot predicted XRD peak positions (2θ) from the d-spacings, using Bragg's law
-- Add YBCO (orthorhombic) once the superconductor project is running
