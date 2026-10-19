@@ -1,4 +1,4 @@
-# Winston Kan — Portfolio + Substrate Plane Viewer
+# Winston Kan — Portfolio
 
 My portfolio site, plus the main project on it: an interactive viewer for crystal planes in thin-film substrates.
 
@@ -6,6 +6,8 @@ My portfolio site, plus the main project on it: an interactive viewer for crysta
 - **`visualizer.html`** — the Substrate Plane Viewer
 - **`lattice.js`** — the crystallography and 3D drawing code both pages share
 - **`LEARNING.md`** — notes on the concepts and how the code works
+- **`glad.html`** + **`glad.js`** — the GLAD Film Simulator, an atom-by-atom model of thin-film growth
+- **`GLAD.md`** — how the simulator works, what it shows, and what it leaves out
 
 ## The Substrate Plane Viewer
 

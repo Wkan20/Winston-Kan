@@ -148,6 +148,25 @@ footer { border-top: 1px solid var(--line); padding-block: 28px 48px; font: 13px
     </div>
   </section>
 
+  <section class="block" id="glad">
+    <div class="label">Project</div>
+    <div class="project">
+      <div>
+        <h2>GLAD Film Simulator</h2>
+        <p>The lab I work in grows films by sputtering, including nanostructured films made by glancing-angle deposition. I noticed nothing modeled the growth process itself, so I built a simple atom-by-atom simulation of it. Atoms fly in at an angle, stick on contact, and hop if the substrate is hot. Tilting the flux makes tall features shadow the area behind them, and the film breaks up into columns.</p>
+      </div>
+      <div class="what">
+        <div><h4>The model</h4><p>Three rules per atom: fly, stick, hop. Columns, posts, and zigzags emerge on their own from shadowing.</p></div>
+        <div><h4>The check</h4><p>Density falls from 48% at normal incidence to 6% at 85°, and columns lean toward the flux, a bit under Tait's rule as grid models usually do.</p></div>
+        <div><h4>The use</h4><p>Trying angles, temperatures, and rotation in seconds before spending hours of chamber time.</p></div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="glad.html">Open the simulator</a>
+        <div class="tags"><span class="tag">JavaScript</span><span class="tag">Simulation</span><span class="tag">Thin-film growth</span><span class="tag">PVD</span></div>
+      </div>
+    </div>
+  </section>
+
   <section class="block" id="experience">
     <div class="label">Experience</div>
     <div class="log">

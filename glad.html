@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>GLAD Film Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<style>
+/* Layout: a wide cross-section "window" into the growing film, controls beside it, readout and explainer below. */
+:root {
+  --bg: #eef1f4;
+  --surface: #f9fafb;
+  --fg: #141b2b;
+  --muted: #5a6476;
+  --line: #cfd6df;
+  --void: #e3e8ee;       /* empty space inside the film */
+  --atom-1: #1d4fd8;
+  --atom-2: #6b8fea;
+  --substrate: #3b4456;
+  --flux: #c26a07;       /* incoming atoms and the predicted-tilt guide */
+  --focus: #1d4fd8;
+  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
+    --void: #0a0e16; --atom-1: #6f9bff; --atom-2: #3d5fae; --substrate: #8a95a8; --flux: #f0a23b; --focus: #8fb1ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
+  --void: #0a0e16; --atom-1: #6f9bff; --atom-2: #3d5fae; --substrate: #8a95a8; --flux: #f0a23b; --focus: #8fb1ff;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.55 var(--font-body); }
+.wrap {
+  max-width: 1200px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 56px;
+}
+header.top { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px 24px; margin-bottom: 20px; }
+.eyebrow { font: 500 12px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--font-display); font-stretch: 112%; font-weight: 800; font-size: clamp(30px, 5vw, 46px); line-height: 1; margin: 8px 0 0; letter-spacing: -.01em; text-wrap: balance; }
+.lede { max-width: 64ch; color: var(--muted); margin: 10px 0 0; }
+.back { color: var(--muted); font-size: 14px; text-decoration: none; border-bottom: 1px solid var(--line); }
+.back:hover { color: var(--fg); }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; align-items: start; }
+@media (max-width: 900px) { .bench { grid-template-columns: 1fr; } }
+
+.stage { background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-width: 0; }
+.window { position: relative; }
+.window canvas { display: block; width: 100%; height: auto; aspect-ratio: 480 / 280; max-width: 100%; border-radius: 3px; image-rendering: pixelated; }
+.window .tag { position: absolute; font: 500 12px var(--font-mono); color: var(--muted); pointer-events: none; }
+.tag.flux { top: 8px; left: 10px; color: var(--flux); background: var(--void); padding: 1px 6px; border-radius: 2px; }
+.tag.sub { bottom: 6px; right: 10px; color: var(--surface); background: var(--substrate); padding: 0 6px; border-radius: 2px; }
+.stage .caption { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; margin-top: 10px; font: 12px var(--font-mono); color: var(--muted); }
+.legend { display: inline-flex; gap: 14px; flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: -1px; }
+
+.panel { display: grid; gap: 14px; min-width: 0; }
+fieldset { border: 1px solid var(--line); border-radius: 6px; background: var(--surface); margin: 0; padding: 12px 14px 14px; min-width: 0; }
+legend { font: 600 12px var(--font-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 0 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px var(--font-body); color: var(--fg); background: transparent; cursor: pointer; border: 1px solid var(--line); border-radius: 999px; padding: 4px 10px; }
+.chip:hover { border-color: var(--muted); }
+.chip[aria-pressed="true"] { border-color: var(--atom-1); color: var(--atom-1); background: var(--bg); }
+.ctrl { display: grid; gap: 4px; }
+.ctrl + .ctrl { margin-top: 12px; }
+.ctrl .head { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ctrl label { font-size: 13px; color: var(--muted); }
+.ctrl output { font: 600 14px var(--font-mono); font-variant-numeric: tabular-nums; }
+.ctrl .ends { display: flex; justify-content: space-between; font: 11px var(--font-mono); color: var(--muted); }
+input[type=range] { width: 100%; accent-color: var(--atom-1); }
+select { font: 500 14px var(--font-body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 6px 8px; width: 100%; }
+.buttons { display: flex; gap: 8px; }
+button.act { flex: 1; font: 600 14px var(--font-body); border-radius: 4px; padding: 9px 12px; cursor: pointer; border: 1px solid var(--line); background: transparent; color: var(--fg); }
+button.act.primary { background: var(--atom-1); border-color: var(--atom-1); color: var(--bg); }
+button.act:hover { filter: brightness(1.06); }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); cursor: pointer; margin-top: 10px; }
+.toggle input { accent-color: var(--flux); width: 16px; height: 16px; }
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.hint { font-size: 12px; color: var(--muted); margin: 8px 0 0; }
+
+.readout { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; margin-top: 12px; border-top: 1px solid var(--line); }
+@media (max-width: 640px) { .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.readout div { padding: 12px 12px 4px 0; min-width: 0; }
+.readout dt { font-size: 12px; color: var(--muted); }
+.readout dd { margin: 2px 0 0; font: 600 22px var(--font-mono); font-variant-numeric: tabular-nums; }
+.readout dd small { font: 400 12px var(--font-mono); color: var(--muted); display: block; margin-top: 2px; }
+
+.explain { margin-top: 40px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 28px 40px; border-top: 1px solid var(--line); padding-top: 26px; }
+@media (max-width: 860px) { .explain { grid-template-columns: 1fr; } }
+.explain h2 { font: 700 19px/1.25 var(--font-display); font-stretch: 105%; margin: 0 0 10px; text-wrap: balance; }
+.explain p, .explain li { color: var(--muted); max-width: 62ch; }
+.explain p { margin: 0 0 10px; }
+.explain b { color: var(--fg); font-weight: 600; }
+.explain ol { margin: 0; padding-left: 20px; display: grid; gap: 8px; }
+.explain li::marker { font: 600 13px var(--font-mono); color: var(--fg); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <div class="eyebrow">Thin-film growth model · PVD</div>
+      <h1>GLAD Film Simulator</h1>
+      <p class="lede">Watch a film grow one atom at a time. Tilt the incoming flux, heat the substrate, or rotate it, and see how shadowing turns a solid film into columns, posts, or zigzags.</p>
+    </div>
+    <a class="back" href="index.html">← Back to portfolio</a>
+  </header>
+
+  <div class="bench">
+    <section class="stage" aria-label="Film cross-section">
+      <div class="window">
+        <canvas id="film" width="480" height="280" aria-label="Side view of the growing film"></canvas>
+        <span class="tag flux" id="fluxTag">atoms arrive from upper left ↘</span>
+        <span class="tag sub">substrate</span>
+      </div>
+      <div class="caption">
+        <span class="legend">
+          <span><i style="background:var(--atom-1)"></i><i style="background:var(--atom-2)"></i>atoms, banded by when they landed</span>
+          <span><i style="background:var(--void)"></i>empty space</span>
+          <span id="guideKey"><i style="background:var(--flux)"></i>predicted tilt (Tait's rule)</span>
+        </span>
+        <span>side view · 480 × 280 atom sites</span>
+      </div>
+      <dl class="readout">
+        <div><dt>Atoms deposited</dt><dd id="rAtoms">0</dd></div>
+        <div><dt>Film thickness</dt><dd id="rThick">0<small>atoms, average</small></dd></div>
+        <div><dt>Density</dt><dd id="rDens">—<small>of space filled</small></dd></div>
+        <div><dt>Column tilt</dt><dd id="rTilt">—<small id="rTiltNote">measured when growth finishes</small></dd></div>
+      </dl>
+    </section>
+
+    <div class="panel">
+      <fieldset>
+        <legend>Presets</legend>
+        <div class="chips" id="presets"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Growth settings</legend>
+        <div class="ctrl">
+          <div class="head"><label for="angle">Deposition angle</label><output id="angleOut" for="angle"></output></div>
+          <input type="range" id="angle" min="0" max="89" step="1">
+          <div class="ends"><span>straight down</span><span>glancing</span></div>
+        </div>
+        <div class="ctrl">
+          <div class="head"><label for="mob">Substrate temperature</label><output id="mobOut" for="mob"></output></div>
+          <input type="range" id="mob" min="0" max="10" step="1">
+          <div class="ends"><span>cold</span><span>hot</span></div>
+        </div>
+        <div class="ctrl">
+          <div class="head"><label for="rot">Substrate rotation</label></div>
+          <select id="rot">
+            <option value="none">None</option>
+            <option value="continuous">Continuous</option>
+            <option value="flip">Flip back and forth</option>
+          </select>
+        </div>
+        <div class="ctrl" id="periodRow">
+          <div class="head"><label for="period">Material per turn</label><output id="periodOut" for="period"></output></div>
+          <input type="range" id="period" min="1" max="20" step="1">
+          <div class="ends"><span>fast spin</span><span>slow spin</span></div>
+        </div>
+        <p class="hint">Changing a setting regrows the film from scratch.</p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Run</legend>
+        <div class="buttons">
+          <button type="button" class="act primary" id="play">Pause</button>
+          <button type="button" class="act" id="regrow">Regrow</button>
+        </div>
+        <div class="ctrl" style="margin-top:12px">
+          <div class="head"><label for="speed">Speed</label></div>
+          <input type="range" id="speed" min="1" max="6" step="1" value="3">
+        </div>
+        <label class="toggle"><input type="checkbox" id="guide" checked> Show predicted column tilt</label>
+      </fieldset>
+    </div>
+  </div>
+
+  <section class="explain">
+    <div>
+      <h2>What the model does</h2>
+      <p>Every atom follows three rules. It <b>flies</b> in a straight line at the deposition angle. It <b>sticks</b> at the first spot where it touches the substrate or another atom. If the substrate is hot, it can <b>hop</b> a few times toward spots where it has more neighbors, since more bonds means lower energy.</p>
+      <p>That's all. The columns aren't programmed in. They come from <b>shadowing</b>: at a steep angle, any bump catches atoms that would have landed behind it, so bumps grow into columns and the space behind them stays empty.</p>
+      <p>Tait's rule is a geometric estimate of how far GLAD columns lean. This model's columns usually lean a little less, which is typical of simple grid models. Real films also depend on things the model leaves out, like the material, ion energy, and the full 3D geometry.</p>
+    </div>
+    <div>
+      <h2>Experiments to try</h2>
+      <ol>
+        <li>Start at <b>0°</b> and step up to <b>85°</b>. Watch density fall as shadowing takes over.</li>
+        <li>At 85°, raise the <b>temperature</b>. Hopping atoms fill some gaps, but shadowing still wins at steep angles.</li>
+        <li>Turn on <b>continuous rotation</b>. The flux now comes from every side, so columns grow straight up as posts.</li>
+        <li>Try <b>flip back and forth</b>. Each flip changes which way the columns lean, building zigzags.</li>
+        <li>At 0°, compare <b>cold</b> and <b>hot</b>. This is why the substrate heater matters even without GLAD.</li>
+      </ol>
+    </div>
+  </section>
+</div>
+
+<script src="glad.js"></script>
+<script>
+(function () {
+  const W = 480, H = 280;
+  const PRESETS = [
+    { label: 'Normal sputtering', angle: 0, mob: 0, rot: 'none', period: 6 },
+    { label: 'Hot substrate', angle: 0, mob: 8, rot: 'none', period: 6 },
+    { label: 'GLAD columns', angle: 85, mob: 0, rot: 'none', period: 6 },
+    { label: 'GLAD + rotation', angle: 85, mob: 0, rot: 'continuous', period: 3 },
+    { label: 'Zigzag', angle: 85, mob: 0, rot: 'flip', period: 8 },
+  ];
+  const SPEEDS = [40, 120, 300, 700, 1500, 4000]; // atoms per frame
+  const $ = (id) => document.getElementById(id);
+  const reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  const settings = { angle: 85, mob: 0, rot: 'none', period: 6 };
+  let seed = 7, sim = null, drawn = 0, running = !reduceMotion, frame = 0;
+
+  // ---------- drawing ----------
+  const canvas = $('film');
+  const ctx = canvas.getContext('2d');
+  const img = ctx.createImageData(W, H);
+  let colors = null;
+
+  function hexToRgb(v) {
+    v = v.trim();
+    if (v.startsWith('#')) {
+      const h = v.length === 4 ? v.slice(1).split('').map((c) => c + c).join('') : v.slice(1);
+      return [parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16)];
+    }
+    const m = v.match(/\d+/g);
+    return m ? m.slice(0, 3).map(Number) : [128, 128, 128];
+  }
+  function readColors() {
+    const cs = getComputedStyle(document.documentElement);
+    colors = {
+      void: hexToRgb(cs.getPropertyValue('--void')),
+      a1: hexToRgb(cs.getPropertyValue('--atom-1')),
+      a2: hexToRgb(cs.getPropertyValue('--atom-2')),
+      flux: cs.getPropertyValue('--flux').trim(),
+      substrate: cs.getPropertyValue('--substrate').trim(),
+    };
+  }
+  function setPixel(idx, rgb) {
+    // simulation row 0 is the bottom; image row 0 is the top, so flip it
+    const x = idx % W, y = (idx / W) | 0;
+    const p = ((H - 1 - y) * W + x) * 4;
+    img.data[p] = rgb[0]; img.data[p + 1] = rgb[1]; img.data[p + 2] = rgb[2]; img.data[p + 3] = 255;
+  }
+  function bandColor(n) {
+    // alternate shades every few monolayers, like growth rings
+    return Math.floor(n / (W * 6)) % 2 ? colors.a2 : colors.a1;
+  }
+  function clearImage() {
+    for (let i = 0; i < W * H; i++) setPixel(i, colors.void);
+  }
+  function paintNew() {
+    for (; drawn < sim.count; drawn++) setPixel(sim.order[drawn], bandColor(drawn));
+  }
+  function repaintAll() {
+    readColors(); clearImage(); drawn = 0; if (sim) paintNew(); present();
+  }
+  function present() {
+    ctx.putImageData(img, 0, 0);
+    // substrate strip
+    ctx.fillStyle = colors.substrate;
+    ctx.fillRect(0, H - 2, W, 2);
+    // predicted tilt guide (only meaningful for a fixed flux direction)
+    if ($('guide').checked && settings.rot === 'none' && settings.angle >= 20) {
+      const beta = Glad.taitTilt(settings.angle) * Math.PI / 180;
+      ctx.save();
+      ctx.strokeStyle = colors.flux; ctx.lineWidth = 1.5; ctx.setLineDash([5, 4]);
+      for (const x0 of [W * 0.3, W * 0.7]) {
+        const len = H * 0.9;
+        ctx.beginPath(); ctx.moveTo(x0, H - 2); ctx.lineTo(x0 - Math.sin(beta) * len, H - 2 - Math.cos(beta) * len); ctx.stroke();
+      }
+      ctx.restore();
+    }
+  }
+
+  // ---------- readout ----------
+  const fmt = new Intl.NumberFormat('en-US');
+  function updateReadout(final) {
+    $('rAtoms').textContent = fmt.format(sim.count);
+    $('rThick').innerHTML = `${Math.round(sim.thickness())}<small>atoms, average</small>`;
+    const d = sim.density();
+    $('rDens').innerHTML = `${Number.isFinite(d) ? Math.round(d * 100) + '%' : '—'}<small>of space filled</small>`;
+    const tait = Glad.taitTilt(settings.angle);
+    if (!final) {
+      $('rTilt').innerHTML = `—<small>measured when growth finishes</small>`;
+    } else if (settings.rot !== 'none') {
+      $('rTilt').innerHTML = `—<small>rotation removes a single lean direction</small>`;
+    } else if (settings.angle < 20) {
+      $('rTilt').innerHTML = `—<small>no tilted columns at this angle</small>`;
+    } else {
+      const t = sim.columnTilt();
+      $('rTilt').innerHTML = Number.isFinite(t)
+        ? `${t.toFixed(0)}°<small>Tait's rule predicts ${tait.toFixed(0)}°</small>`
+        : `—<small>no clear columns to measure</small>`;
+    }
+  }
+
+  // ---------- simulation control ----------
+  function regrow(newSeed) {
+    if (newSeed) seed = (seed * 48271) % 2147483647;
+    sim = Glad.createSim({ width: W, height: H, angle: settings.angle, mobility: settings.mob, rotation: settings.rot, period: settings.period, seed });
+    drawn = 0; clearImage();
+    if (reduceMotion) { while (sim.step(2000)); }
+    paintNew(); present(); updateReadout(sim.full);
+    $('fluxTag').textContent = settings.rot === 'none'
+      ? (settings.angle === 0 ? 'atoms arrive straight down ↓' : 'atoms arrive from upper left ↘')
+      : 'atoms arrive from changing directions';
+    $('guideKey').hidden = !(settings.rot === 'none' && settings.angle >= 20);
+    setPlaying(!reduceMotion);
+  }
+
+  function setPlaying(on) {
+    running = on && !sim.full;
+    $('play').textContent = sim.full ? 'Finished' : running ? 'Pause' : 'Resume';
+    $('play').disabled = sim.full;
+  }
+
+  function tick() {
+    if (running && sim) {
+      const more = sim.step(SPEEDS[$('speed').value - 1]);
+      paintNew(); present();
+      if (!more || sim.full) { updateReadout(true); setPlaying(false); }
+      else if (++frame % 8 === 0) updateReadout(false);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  // ---------- controls ----------
+  function syncControls() {
+    $('angle').value = settings.angle; $('angleOut').textContent = settings.angle + '°';
+    $('mob').value = settings.mob; $('mobOut').textContent = settings.mob === 0 ? 'cold, no hops' : `${settings.mob} hop${settings.mob > 1 ? 's' : ''} per atom`;
+    $('rot').value = settings.rot;
+    $('period').value = settings.period; $('periodOut').textContent = `${settings.period} monolayer${settings.period > 1 ? 's' : ''}`;
+    $('periodRow').hidden = settings.rot === 'none';
+    $('periodRow').querySelector('label').textContent = settings.rot === 'flip' ? 'Material per flip' : 'Material per turn';
+    [...$('presets').children].forEach((b, i) => {
+      const p = PRESETS[i];
+      const match = p.angle === settings.angle && p.mob === settings.mob && p.rot === settings.rot && (p.rot === 'none' || p.period === settings.period);
+      b.setAttribute('aria-pressed', String(match));
+    });
+  }
+
+  PRESETS.forEach((p) => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'chip'; b.textContent = p.label;
+    b.addEventListener('click', () => { Object.assign(settings, { angle: p.angle, mob: p.mob, rot: p.rot, period: p.period }); syncControls(); regrow(false); });
+    $('presets').appendChild(b);
+  });
+
+  let debounce = 0;
+  const onSetting = (key, parse) => (e) => {
+    settings[key] = parse(e.target.value); syncControls();
+    clearTimeout(debounce); debounce = setTimeout(() => regrow(false), 120);
+  };
+  $('angle').addEventListener('input', onSetting('angle', Number));
+  $('mob').addEventListener('input', onSetting('mob', Number));
+  $('rot').addEventListener('change', onSetting('rot', String));
+  $('period').addEventListener('input', onSetting('period', Number));
+  $('play').addEventListener('click', () => setPlaying(!running));
+  $('regrow').addEventListener('click', () => regrow(true));
+  $('guide').addEventListener('change', present);
+
+  if (window.matchMedia) matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', repaintAll);
+  new MutationObserver(repaintAll).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+
+  // ---------- start: GLAD columns, partly grown so the first view isn't empty ----------
+  readColors();
+  syncControls();
+  regrow(false);
+  if (!reduceMotion) { sim.step(2500); paintNew(); present(); updateReadout(false); }
+  requestAnimationFrame(tick);
+})();
+</script>
+</body>
+</html>
