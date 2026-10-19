@@ -16,6 +16,10 @@
  *   TEMPERATURE A hot substrate lets landed atoms move into better spots,
  *              which fills gaps and makes denser films.
  *
+ * With two magnetrons, each gun sits off to one side aimed at the substrate
+ * (offset), so its atoms arrive at an angle. Only one gun runs at a time here;
+ * the other sits behind a closed shutter.
+ *
  * The numbers here are simplified on purpose so the cause and effect stay
  * visible. Rates are rough estimates for a small (2") lab gun, not a
  * calibration for any particular system.
@@ -65,7 +69,11 @@
     const fb = ballisticFraction(s.distance, lambda);
     const geometry = (10 / s.distance) ** 2;
     const delivery = 0.35 + 0.65 * fb; // scattered atoms mostly land on chamber walls
-    const tiltLoss = Math.cos((Math.min(s.tilt, 89) * Math.PI) / 180); // tilted substrate catches less flux
+    // a substrate facing away from the gun catches less flux. offset = where the gun sits
+    // (degrees off the substrate's normal); rotation averages the direction out
+    const off = s.offset || 0;
+    const incidence = s.rotation && s.rotation !== 'none' ? Math.max(s.tilt, Math.abs(off)) : Math.abs(s.tilt + off);
+    const tiltLoss = Math.cos((Math.min(incidence, 89) * Math.PI) / 180);
     return 14 * (s.power / 100) * (m.yield / MATERIALS.Cu.yield) * geometry * delivery * Math.max(tiltLoss, 0.05);
   }
 
@@ -92,10 +100,10 @@
     const b1 = 0.1 + 0.2 * f;   // Zone 1 → Zone T
     const b2 = 0.3 + 0.15 * f;  // Zone T → Zone 2
     const b3 = 0.5 + 0.1 * f;   // Zone 2 → Zone 3
-    if (th < b1) return { id: '1', name: 'Zone 1', text: 'Thin tapered columns with gaps between them. Atoms stick where they land.' };
-    if (th < b2) return { id: 'T', name: 'Zone T', text: 'Densely packed fibrous grains. Atoms move a little; energetic arrivals fill the gaps.' };
-    if (th < b3) return { id: '2', name: 'Zone 2', text: 'Dense columnar grains that run straight through the film. Surface diffusion dominates.' };
-    return { id: '3', name: 'Zone 3', text: 'Large, equiaxed grains. Atoms move through the bulk, not just the surface.' };
+    if (th < b1) return { id: '1', name: 'Zone 1', plain: 'Porous', text: 'Thin columns with gaps between them. Atoms stick where they land.' };
+    if (th < b2) return { id: 'T', name: 'Zone T', plain: 'Packed', text: 'Tightly packed thin grains. Atoms move a little and fill most gaps.' };
+    if (th < b3) return { id: '2', name: 'Zone 2', plain: 'Dense', text: 'Solid columns of crystal running through the coating.' };
+    return { id: '3', name: 'Zone 3', plain: 'Crystals', text: 'Large crystals. Atoms move around inside the coating, not just on top.' };
   }
   zone.bounds = (pressure) => {
     const f = Math.min(1, Math.max(0, Math.log10(pressure) / Math.log10(30)));
@@ -134,7 +142,8 @@
         if (s.rotation === 'flip') side = Math.floor(layers / s.period) % 2 ? -1 : 1;
         // in our 2D side view we see the part of the tilt that lies in the slice
         const t = Math.tan(tilt) * side;
-        theta = Math.atan(t) + jitter;
+        // a gun mounted off to one side adds its own angle (confocal guns)
+        theta = Math.atan(t) + (s.offset || 0) * DEG * side + jitter;
       } else {
         // scattered by argon: arrives from a random direction (cosine distribution)
         theta = Math.asin(2 * rand() - 1);

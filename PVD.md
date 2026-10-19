@@ -2,6 +2,11 @@
 
 How each knob on a magnetron sputtering system changes the film, and how the simulator models it. Written so I can explain it.
 
+## The page
+
+1. **A tour of the machine:** a 3D model (three.js, built from simple shapes in `tour.js`) with eleven slides: the chamber, pumps, load lock, argon inlet, magnetron guns, plasma, shutters, sample holder and heater, thickness monitor, and how they work together.
+2. **The simulator:** two guns, a layer recipe (bottom to top), and settings for gas, position, spinning, and sample temperature. Only one gun runs at a time; the other sits behind its shutter.
+
 ## The system in one paragraph
 
 A sputter chamber is pumped down to high vacuum, then filled with a little argon (a few mTorr). A voltage on the target lights an argon plasma right in front of it, held there by magnets (the "magnetron"). Argon ions slam into the target and knock metal atoms off. Those atoms fly across the chamber, land on the substrate, and build up the film.
@@ -11,6 +16,7 @@ A sputter chamber is pumped down to high vacuum, then filled with a little argon
 | Knob | What it changes physically | What happens to the film |
 |---|---|---|
 | **Argon pressure** | How often sputtered atoms hit argon on the way (mean free path) | Low pressure: atoms arrive fast and straight, film is denser. High pressure: atoms arrive slow and from random directions, film is more porous. |
+| **Two guns and layers** | Each gun holds a different metal; switching guns grows one metal on top of another | A thin titanium layer under copper helps it stick; alternating thin layers makes a multilayer stack. |
 | **Power** | How many ions hit the target per second | Faster deposition. Slightly less time for each atom to settle before it's buried. |
 | **Target material** | How many atoms each ion knocks off (sputter yield), and the melting point | Copper sputters fast; tungsten and titanium slowly. High-melting-point metals give porous films at room temperature. |
 | **Distance** | How far atoms travel | Longer distance spreads atoms out (slower rate) and adds collisions. |

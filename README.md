@@ -6,7 +6,8 @@ My portfolio site and the simulations on it. The page is designed as a thermal-o
 - **`visualizer.html`** — the Substrate Plane Viewer
 - **`lattice.js`** — the crystallography and 3D drawing code both pages share
 - **`LEARNING.md`** — notes on the concepts and how the code works
-- **`pvd.html`** + **`pvd.js`** — the Sputter Chamber Simulator: how pressure, power, distance, tilt, rotation and temperature change a sputtered film
+- **`pvd.html`** + **`pvd.js`** — the Sputter Chamber Simulator: a 3D tour of a two-gun sputtering machine (`tour.js`), then a simulator of how gas, power, metal, layers, distance, tilt, spinning and temperature change the coating
+- **`vendor/three.min.js`** — three.js r128 (MIT license in `vendor/three-LICENSE.txt`), used for the 3D tour
 - **`glad.js`** — the atom-by-atom film growth engine the simulator runs on (`glad.html` now redirects to `pvd.html`)
 - **`PVD.md`** — the chamber physics, what was checked, and what the model leaves out
 - **`resistivity.html`** + **`resistivity.js`** — Thin-Wire Resistivity, how metal films conduct worse as they get thinner

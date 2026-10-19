@@ -88,8 +88,11 @@
 
     // every atom's position in arrival order, so the page can draw only the new ones
     const order = new Int32Array(W * H);
+    // optional label per atom (e.g. which gun it came from), in arrival order
+    const tags = new Int8Array(W * H);
 
-    function place(x, y) {
+    function place(x, y, tag = 0) {
+      tags[count] = tag;
       order[count] = y * W + x;
       grid[y * W + x] = ++count;
       if (y + 1 > colTop[x]) colTop[x] = y + 1;
@@ -156,7 +159,7 @@
       const hops = a ? a.hops : mobility;
       if (hops > 0) [x, y] = hop(x, y, hops);
       if (filled(x, y)) return true; // rare collision after a hop; skip this atom
-      place(x, y);
+      place(x, y, a && a.tag ? a.tag : 0);
       return true;
     }
 
@@ -225,7 +228,7 @@
     }
 
     return {
-      W, H, grid, colTop, order,
+      W, H, grid, colTop, order, tags,
       step,
       get count() { return count; },
       get full() { return full; },
