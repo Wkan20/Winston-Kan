@@ -131,36 +131,38 @@ button.icon svg { width: 14px; height: 14px; }
 
 
 /* example run + experiments */
-.runsec { padding-top: 34px; }
-.rungrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 20px; margin-top: 14px; align-items: start; }
-@media (max-width: 900px) { .rungrid { grid-template-columns: 1fr; } }
-.subcard h3 { font: 800 30px/1 var(--font-display); text-transform: uppercase; margin: 0 0 4px; }
-.subcard .formula { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; }
-.subcard p { margin: 0 0 10px; max-width: 52ch; }
-.subcard .crystal { display: block; width: 100%; max-width: 220px; height: auto; margin: 6px 0 12px; }
-.subcard dl { margin: 10px 0 0; border-top: 1px solid var(--rule); }
-.subcard dl div { display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
-.subcard dt { font-weight: 600; }
-.subcard dd { margin: 0; color: var(--ink-soft); }
-.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; gap: 0; }
-.steps li { counter-increment: s; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
-.steps li:first-child { padding-top: 0; }
-.steps li::before { content: counter(s); font: 800 30px/1 var(--font-display); color: var(--ink); }
-.steps h4 { font: 700 16px var(--font-body); margin: 0 0 2px; }
-.steps p { margin: 0; color: var(--ink-soft); max-width: 66ch; }
-.runfoot { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-top: 16px; }
-.runfoot .act { width: auto; padding: 11px 18px; }
-.runfoot small { font-size: 13px; color: var(--ink-soft); max-width: 60ch; }
-.exps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
-@media (max-width: 760px) { .exps { grid-template-columns: 1fr; } }
-.exp h3 { font: 700 19px/1.25 var(--font-body); margin: 0 0 6px; text-wrap: balance; }
-.exp p { margin: 0 0 10px; color: var(--ink-soft); max-width: 60ch; }
-.exp .look { font-size: 14px; color: var(--ink); }
-.exp .look b { font-weight: 700; }
-.exp .pairbtn { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.exp .pairbtn button { font: 600 14px var(--font-body); border-radius: 3px; padding: 8px 12px; cursor: pointer; border: 1px solid var(--ink); background: transparent; color: var(--ink); }
-.exp .pairbtn button:hover { background: var(--ink); color: var(--plot); }
-.sectionlede { margin: 8px 0 0; max-width: 70ch; color: var(--ink-soft); }
+.tabs { display: flex; gap: 0; margin-top: 14px; border-bottom: 1px solid var(--ink); overflow-x: auto; }
+.tabs button { font: 600 14px var(--font-body); color: var(--ink-soft); background: transparent; border: 1px solid transparent; border-bottom: 0; border-radius: 4px 4px 0 0; padding: 8px 14px; cursor: pointer; white-space: nowrap; margin-bottom: -1px; }
+.tabs button:hover { color: var(--ink); }
+.tabs button[aria-selected="true"] { color: var(--ink); background: var(--plot); border-color: var(--ink); border-bottom: 1px solid var(--plot); }
+.tabpanel { background: var(--plot); border: 1px solid var(--ink); border-top: 0; border-radius: 0 0 4px 4px; padding: 14px 16px; margin-bottom: 16px; }
+.runwrap { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr); gap: 18px; align-items: start; }
+@media (max-width: 900px) { .runwrap { grid-template-columns: 1fr; } }
+.sample { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: start; }
+.sample .crystal { width: 76px; height: 76px; }
+.sample h3 { font: 800 22px/1 var(--font-display); text-transform: uppercase; margin: 0 0 6px; }
+.sample p { margin: 0 0 6px; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
+.sample b { color: var(--ink); }
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+@media (max-width: 1100px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.steps li { counter-increment: s; border-top: 2px solid var(--rule); padding: 6px 0 0; }
+.steps li.sim { border-top-color: var(--ink); }
+.steps h4 { font: 700 14px var(--font-body); margin: 0 0 2px; }
+.steps h4::before { content: counter(s) " "; font: 800 17px/1 var(--font-display); margin-right: 2px; }
+.steps p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
+.steps li.sim p { color: var(--ink); }
+.runfoot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); }
+.runfoot .act { width: auto; padding: 8px 14px; font-size: 13.5px; }
+.runfoot small { font-size: 12.5px; color: var(--ink-soft); max-width: 70ch; }
+.exps { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; }
+@media (max-width: 1100px) { .exps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .exps { grid-template-columns: 1fr; } }
+.exp { display: flex; flex-direction: column; }
+.exp h3 { font: 700 15px/1.25 var(--font-body); margin: 0 0 4px; text-wrap: balance; }
+.exp p { margin: 0 0 8px; font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
+.exp .pairbtn { display: flex; gap: 6px; margin-top: auto; }
+.exp .pairbtn button { flex: 1; font: 600 13px var(--font-body); border-radius: 3px; padding: 6px 8px; cursor: pointer; border: 1px solid var(--ink); background: transparent; color: var(--ink); }
+.exp .pairbtn button:hover, .exp .pairbtn button[aria-pressed="true"] { background: var(--ink); color: var(--plot); }
 
 /* tour */
 .tour { padding-block: 28px 8px; }
@@ -222,86 +224,64 @@ button.icon svg { width: 14px; height: 14px; }
 </section>
 
 <main class="pad">
-  <section class="runsec" aria-labelledby="t-run">
-    <h2 class="sectionhead" id="t-run">An example run: molybdenum on MgO</h2>
-    <p class="sectionlede">Real labs follow a careful recipe before and after the coating itself. These steps follow a published procedure from the Gall group at RPI for growing molybdenum films on MgO crystals.</p>
-    <div class="rungrid">
-      <div class="card subcard">
-        <h3>The sample: MgO(001)</h3>
-        <p class="formula">Magnesium oxide, a single crystal, about the size of a fingernail</p>
-        <svg class="crystal" viewBox="0 0 220 120" role="img" aria-label="Top view of the MgO square atom grid with the molybdenum grid on top, turned 45 degrees">
-          <g fill="#8f8aa6">
-            <circle cx="20" cy="20" r="6"/><circle cx="60" cy="20" r="6"/><circle cx="100" cy="20" r="6"/>
-            <circle cx="40" cy="40" r="6"/><circle cx="80" cy="40" r="6"/>
-            <circle cx="20" cy="60" r="6"/><circle cx="60" cy="60" r="6"/><circle cx="100" cy="60" r="6"/>
-            <circle cx="40" cy="80" r="6"/><circle cx="80" cy="80" r="6"/>
-            <circle cx="20" cy="100" r="6"/><circle cx="60" cy="100" r="6"/><circle cx="100" cy="100" r="6"/>
-          </g>
+  <h2 class="sectionhead" id="simulator">The simulator</h2>
+  <div class="tabs" role="tablist" aria-label="Guided runs">
+    <button type="button" role="tab" id="tab-run" aria-controls="panel-run" aria-selected="true">Example run: Mo on MgO</button>
+    <button type="button" role="tab" id="tab-exp" aria-controls="panel-exp" aria-selected="false" tabindex="-1">Experiments to try</button>
+  </div>
+  <section class="tabpanel" id="panel-run" role="tabpanel" aria-labelledby="tab-run">
+    <div class="runwrap">
+      <div class="sample">
+        <svg class="crystal" viewBox="0 0 120 120" role="img" aria-label="Top view of the MgO square grid of oxygen and magnesium atoms">
+          <g fill="#8f8aa6"><circle cx="20" cy="20" r="6"/><circle cx="60" cy="20" r="6"/><circle cx="100" cy="20" r="6"/><circle cx="40" cy="40" r="6"/><circle cx="80" cy="40" r="6"/><circle cx="20" cy="60" r="6"/><circle cx="60" cy="60" r="6"/><circle cx="100" cy="60" r="6"/><circle cx="40" cy="80" r="6"/><circle cx="80" cy="80" r="6"/><circle cx="20" cy="100" r="6"/><circle cx="60" cy="100" r="6"/><circle cx="100" cy="100" r="6"/></g>
           <g fill="#ecebf5" stroke="#17141f" stroke-width="1"><circle cx="40" cy="20" r="3.5"/><circle cx="80" cy="20" r="3.5"/><circle cx="20" cy="40" r="3.5"/><circle cx="60" cy="40" r="3.5"/><circle cx="100" cy="40" r="3.5"/><circle cx="40" cy="60" r="3.5"/><circle cx="80" cy="60" r="3.5"/><circle cx="20" cy="80" r="3.5"/><circle cx="60" cy="80" r="3.5"/><circle cx="100" cy="80" r="3.5"/><circle cx="40" cy="100" r="3.5"/><circle cx="80" cy="100" r="3.5"/></g>
-          <g font-family="Schibsted Grotesk, Arial, sans-serif" font-size="11" fill="#17141f">
-            <circle cx="132" cy="30" r="6" fill="#8f8aa6"/><text x="144" y="34">oxygen</text>
-            <circle cx="132" cy="54" r="3.5" fill="#ecebf5" stroke="#17141f"/><text x="144" y="58">magnesium</text>
-            <text x="126" y="86" fill="rgba(23,20,31,.84)">square grid,</text><text x="126" y="100" fill="rgba(23,20,31,.84)">4.212 Å repeat</text>
-          </g>
         </svg>
-        <p>MgO has the same crystal structure as table salt: a square grid of magnesium and oxygen atoms. It is clear and does not conduct electricity, so when you measure the metal film’s resistance, no current leaks through the sample.</p>
-        <p>Molybdenum’s own square grid fits on top of MgO if it turns 45°, so a hot enough film can copy the crystal underneath. That kind of lined-up growth is called <b>epitaxy</b>.</p>
-        <dl>
-          <div><dt>Face on top</dt><dd>(001), the cube face. <a href="visualizer.html">See it in the plane viewer</a></dd></div>
-          <div><dt>Film on top</dt><dd>Mo(001), turned 45°, 5.7% spacing difference</dd></div>
-        </dl>
-      </div>
-      <div class="card">
-        <ol class="steps">
-          <li><div><h4>Clean</h4><p>Ultrasonic baths of trichloroethylene, acetone, isopropyl alcohol, and deionized water, 15 minutes each. The first solvents strip grease and dirt; each later bath rinses away what the one before left behind.</p></div></li>
-          <li><div><h4>Dry and mount</h4><p>Blow it dry with nitrogen gas, then attach it to a molybdenum holder with silver paint, which holds it in place and carries heat into it.</p></div></li>
-          <li><div><h4>Load</h4><p>Bring it in through the load lock so the main chamber never sees air. The main chamber sits at 10⁻⁹ Torr, about a trillionth of normal air pressure.</p></div></li>
-          <li><div><h4>Bake</h4><p>Heat the sample to 1,000 °C for an hour in vacuum to drive off water and gas stuck to its surface.</p></div></li>
-          <li><div><h4>Coat</h4><p>Sputter molybdenum in 20 mTorr of argon with the sample at 900 °C and spinning, until the film reaches the planned thickness. The study grew films from about 4 to 400 nm thick.</p></div></li>
-          <li><div><h4>Anneal</h4><p>Hold the coated sample at 1,000 °C for 2 hours so the film’s crystal can smooth out its flaws.</p></div></li>
-          <li><div><h4>Cool</h4><p>Let it cool back to room temperature over about 12 hours, keeping the temperature change gentle.</p></div></li>
-          <li><div><h4>Measure</h4><p>Measure resistance with a four-point probe without breaking vacuum, check the crystal alignment with X-ray diffraction, and measure the thickness with X-ray reflectivity.</p></div></li>
-        </ol>
-        <div class="runfoot">
-          <button type="button" class="act" data-run="moHot">Run the coating step in the simulator</button>
-          <small>Source: the Gall group’s study of <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10052566/" target="_blank" rel="noopener">epitaxial Mo(001) and Mo(011) layers</a>. The simulator models only the coating step, as a 2D slice.</small>
+        <div>
+          <h3>Sample: MgO(001)</h3>
+          <p>A fingernail-sized crystal of magnesium oxide (big dots oxygen, small dots magnesium): a square grid that repeats every 4.212 Å. It doesn’t conduct, so resistance measurements see only the metal.</p>
+          <p>Molybdenum’s grid fits on it turned 45°, only 5.7% off, so a hot film can copy the crystal underneath: <b>epitaxy</b>. <a href="visualizer.html">See the (001) face</a></p>
         </div>
       </div>
+      <ol class="steps">
+        <li><h4>Clean</h4><p>Ultrasonic baths of trichloroethylene, acetone, isopropyl alcohol, then DI water, 15 min each.</p></li>
+        <li><h4>Mount</h4><p>Blow dry with nitrogen; stick it to a Mo holder with silver paint.</p></li>
+        <li><h4>Load</h4><p>In through the load lock; the main chamber stays at 10⁻⁹ Torr.</p></li>
+        <li><h4>Bake</h4><p>1,000 °C for 1 hour to drive off water and gas on the surface.</p></li>
+        <li class="sim"><h4>Coat</h4><p>Mo in 20 mTorr argon, sample at 900 °C and spinning. This is the step the simulator runs.</p></li>
+        <li><h4>Anneal</h4><p>1,000 °C for 2 hours so the crystal smooths out its flaws.</p></li>
+        <li><h4>Cool</h4><p>Back to room temperature slowly, over about 12 hours.</p></li>
+        <li><h4>Measure</h4><p>Four-point probe without breaking vacuum, X-ray diffraction for alignment, X-ray reflectivity for thickness.</p></li>
+      </ol>
+    </div>
+    <div class="runfoot">
+      <button type="button" class="act" data-run="moHot">Load the coating step</button>
+      <small>Steps follow a published procedure from the Gall group at RPI: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10052566/" target="_blank" rel="noopener">epitaxial Mo(001) and Mo(011) layers</a>. Films in the study ran from about 4 to 400 nm thick.</small>
     </div>
   </section>
-
-  <section class="runsec" aria-labelledby="t-exp">
-    <h2 class="sectionhead" id="t-exp">Experiments to try</h2>
-    <p class="sectionlede">Each one changes a single setting so you can see what it does. Load a run, watch the coating grow, then load the other and compare.</p>
+  <section class="tabpanel" id="panel-exp" role="tabpanel" aria-labelledby="tab-exp" hidden>
     <div class="exps">
-      <div class="card exp">
+      <div class="exp">
         <h3>Why heat the MgO to 900 °C?</h3>
-        <p>Molybdenum on MgO, everything the same except the sample temperature.</p>
-        <p class="look"><b>Look at:</b> “Lines up with the sample’s crystal?” and how solid the coating is.</p>
-        <div class="pairbtn"><button type="button" data-run="moHot">Load: 900 °C</button><button type="button" data-run="moCold">Load: room temperature</button></div>
+        <p>Same Mo run, hot vs. room temperature. Watch “Lines up with the sample’s crystal?” and the gaps.</p>
+        <div class="pairbtn"><button type="button" data-run="moHot">900 °C</button><button type="button" data-run="moCold">Room temp</button></div>
       </div>
-      <div class="card exp">
+      <div class="exp">
         <h3>Does the sample need to be a crystal?</h3>
-        <p>The same hot molybdenum run, on MgO and then on a glass slide.</p>
-        <p class="look"><b>Look at:</b> glass has no crystal pattern for the film to copy.</p>
-        <div class="pairbtn"><button type="button" data-run="moHot">Load: on MgO</button><button type="button" data-run="moGlass">Load: on glass</button></div>
+        <p>Hot Mo on MgO, then on glass, which has no pattern for the film to copy.</p>
+        <div class="pairbtn"><button type="button" data-run="moHot">On MgO</button><button type="button" data-run="moGlass">On glass</button></div>
       </div>
-      <div class="card exp">
+      <div class="exp">
         <h3>Why use so little gas?</h3>
-        <p>Copper on an oxidized silicon wafer, with a little argon and then a lot.</p>
-        <p class="look"><b>Look at:</b> “Atoms that fly straight,” the dots in the chamber, and the gaps in the coating.</p>
-        <div class="pairbtn"><button type="button" data-run="cuLow">Load: 1 mTorr</button><button type="button" data-run="cuHigh">Load: 20 mTorr</button></div>
+        <p>Copper with a little argon, then a lot. Watch “Atoms that fly straight” and the gaps.</p>
+        <div class="pairbtn"><button type="button" data-run="cuLow">1 mTorr</button><button type="button" data-run="cuHigh">20 mTorr</button></div>
       </div>
-      <div class="card exp">
+      <div class="exp">
         <h3>Why put titanium down first?</h3>
-        <p>Copper alone, then copper on a thin titanium layer. Titanium bonds to the oxide and helps the copper stick; the simulator shows the layers but not that chemistry.</p>
-        <p class="look"><b>Look at:</b> the two colors in the close-up and the time each layer takes.</p>
-        <div class="pairbtn"><button type="button" data-run="cuAlone">Load: copper alone</button><button type="button" data-run="tiCu">Load: titanium, then copper</button></div>
+        <p>Copper alone, then on a thin Ti layer, which helps it stick (the chemistry isn’t simulated).</p>
+        <div class="pairbtn"><button type="button" data-run="cuAlone">Cu alone</button><button type="button" data-run="tiCu">Ti, then Cu</button></div>
       </div>
     </div>
   </section>
-
-  <h2 class="sectionhead" id="simulator">The simulator</h2>
   <section class="tool" aria-label="Simulator">
     <div class="views">
       <div class="pair">
@@ -436,10 +416,10 @@ button.icon svg { width: 14px; height: 14px; }
   <p class="src"><b>For the curious:</b> the distance between gas hits comes from kinetic theory (λ = kT/√2πd²p, d ≈ 0.35 nm). An atom counts as flying straight if it hits argon fewer than 4 times. Guns sit 20° off the sample’s axis. Sputter yields at 600 eV Ar⁺ are from Angstrom Sciences. Coating types follow Thornton’s structure zone model (1974) with approximate boundaries. Coating speeds are rough estimates for a small lab gun, and the close-up is a 2D slice, so treat the numbers as trends.</p>
 </main>
 
-<script src="glad.js"></script>
-<script src="pvd.js"></script>
+<script src="glad.js?v=3"></script>
+<script src="pvd.js?v=3"></script>
 <script src="vendor/three.min.js"></script>
-<script src="tour.js"></script>
+<script src="tour.js?v=3"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -867,11 +847,27 @@ button.icon svg { width: 14px; height: 14px; }
     cuAlone: { recipe: [{ gun: 1, nm: 40 }] },
     tiCu: {},
   };
-  document.querySelectorAll('[data-run]').forEach((b) => b.addEventListener('click', () => {
+  const runBtns = [...document.querySelectorAll('[data-run]')];
+  runBtns.forEach((b) => b.addEventListener('click', () => {
     state = { ...clone(DEFAULTS), ...clone(RUNS[b.dataset.run]) };
     changed(0);
-    $('simulator').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+    runBtns.forEach((x) => x.closest('.pairbtn') && x.setAttribute('aria-pressed', String(x === b)));
+    // bring the readout into view without losing the tabs on wide screens
+    const tool = document.querySelector('.tool');
+    if (tool.getBoundingClientRect().top > window.innerHeight * 0.6) tool.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
   }));
+  // tabs
+  const tabs = [...document.querySelectorAll('.tabs [role=tab]')];
+  function pick(t) {
+    tabs.forEach((x) => { const on = x === t; x.setAttribute('aria-selected', String(on)); x.tabIndex = on ? 0 : -1; $(x.getAttribute('aria-controls')).hidden = !on; });
+  }
+  tabs.forEach((t, i) => {
+    t.addEventListener('click', () => pick(t));
+    t.addEventListener('keydown', (e) => {
+      const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0;
+      if (d) { const n = tabs[(i + d + tabs.length) % tabs.length]; pick(n); n.focus(); e.preventDefault(); }
+    });
+  });
 
   // ---------- loop ----------
   let emitAcc = 0, tick = 0, finalized = false;

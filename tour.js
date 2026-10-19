@@ -248,7 +248,7 @@
   }
   $('#tourPrev').addEventListener('click', () => go(idx - 1));
   $('#tourNext').addEventListener('click', () => {
-    if (idx === SLIDES.length - 1) document.getElementById('t-run').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+    if (idx === SLIDES.length - 1) document.getElementById('simulator').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
     else go(idx + 1);
   });
   root.addEventListener('keydown', (e) => {
