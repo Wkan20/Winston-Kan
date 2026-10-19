@@ -32,7 +32,7 @@ body { margin: 0; background: var(--si); color: var(--ink); font: 16px/1.55 var(
 ::selection { background: var(--ink); color: var(--si); }
 a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
 :focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 2px; }
-.num { font-variant-numeric: tabular-nums; }
+.num { font-variant-numeric: normal; } /* this font widens "." and "," under tabular figures; right-aligned columns keep numbers readable */
 .pad { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
 
 /* opening band */
@@ -105,7 +105,7 @@ tr.best td { font-weight: 700; }
 /* your data */
 .mine { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding-bottom: 28px; }
 @media (max-width: 860px) { .mine { grid-template-columns: 1fr; } }
-textarea { width: 100%; min-height: 140px; font: 14px/1.5 var(--font-body); font-variant-numeric: tabular-nums; color: var(--ink); background: var(--plot); border: 1px solid var(--rule); border-radius: 3px; padding: 10px; resize: vertical; }
+textarea { width: 100%; min-height: 140px; font: 14px/1.5 var(--font-body); color: var(--ink); background: var(--plot); border: 1px solid var(--rule); border-radius: 3px; padding: 10px; resize: vertical; }
 select { font: 500 14px var(--font-body); color: var(--ink); background: var(--plot); border: 1px solid var(--rule); border-radius: 3px; padding: 7px 8px; }
 .mine .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
 .result { font-size: 15px; }
