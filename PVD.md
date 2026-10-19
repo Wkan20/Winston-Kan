@@ -6,6 +6,7 @@ How each knob on a magnetron sputtering system changes the film, and how the sim
 
 1. **A tour of the machine:** a 3D model (three.js, built from simple shapes in `tour.js`) with eleven slides: the chamber, pumps, load lock, argon inlet, magnetron guns, plasma, shutters, sample holder and heater, thickness monitor, and how they work together.
 2. **Tabs above the simulator — an example run:** molybdenum on an MgO(001) crystal, step by step: clean, dry and mount, load, bake, coat, anneal, cool, measure. It follows a published procedure (Gall group, RPI: [Anisotropic resistivity size effect in epitaxial Mo(001) and Mo(011) layers](https://pmc.ncbi.nlm.nih.gov/articles/PMC10052566/)): solvent baths, 10⁻⁹ Torr base pressure, a 1000 °C degas, sputtering at 20 mTorr Ar onto a 900 °C rotating substrate, a 1000 °C anneal, and a slow cool.
+   The example-run tab is an animated step viewer (`process.js`): clean, mount, pump down, degas, sputter-clean the target behind the shutter, coat, anneal, cool, measure, with a temperature strip for the whole run.
 3. **…and experiments to try (second tab):** paired buttons that load two settings to compare: hot vs. room-temperature Mo on MgO, MgO vs. glass, 1 vs. 20 mTorr copper, and copper with or without a titanium layer under it.
 4. **The simulator:** two guns, a layer recipe (bottom to top), and settings for gas, position, spinning, and sample temperature. Only one gun runs at a time; the other sits behind its shutter.
 

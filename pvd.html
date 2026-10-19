@@ -158,21 +158,37 @@ button.icon svg { width: 14px; height: 14px; }
 .tabs button:hover { color: var(--ink); }
 .tabs button[aria-selected="true"] { color: var(--ink); background: var(--plot); border-color: var(--ink); border-bottom: 1px solid var(--plot); }
 .tabpanel { background: var(--plot); border: 1px solid var(--ink); border-top: 0; border-radius: 0 0 4px 4px; padding: 14px 16px; margin-bottom: 16px; }
-.runwrap { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 2fr); gap: 18px; align-items: start; }
+.runwrap { display: grid; gap: 12px; }
 @media (max-width: 900px) { .runwrap { grid-template-columns: 1fr; } }
-.sample { display: grid; grid-template-columns: 76px minmax(0, 1fr); gap: 12px; align-items: start; }
-.sample .crystal { width: 76px; height: 76px; }
+.sample { display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 10px; align-items: center; }
+.proc { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); gap: 14px 20px; }
+@media (max-width: 760px) { .proc { grid-template-columns: 1fr; } }
+.procstage { background: #fff; border: 1px solid var(--rule); border-radius: 4px; }
+#procCanvas { aspect-ratio: 16 / 9; }
+.proctext { display: flex; flex-direction: column; gap: 6px; min-width: 0; }
+.pnum { font-size: 12px; color: var(--ink-soft); }
+.proctext h3 { font: 800 28px/1 var(--font-display); text-transform: uppercase; margin: 0; }
+.proctext p { margin: 0; font-size: 15px; max-width: 46ch; }
+.facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 4px; }
+.facts span { display: grid; font-size: 11px; color: var(--ink-soft); }
+.facts b { font: 700 16px var(--font-body); color: var(--ink); }
+.pnav { display: flex; gap: 8px; margin-top: auto; padding-top: 8px; }
+.pnav .act { width: auto; flex: 1; }
+.pnav button:disabled { opacity: .35; cursor: default; }
+.simbtn { background: var(--epi) !important; }
+.pstrip { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(9, minmax(0, 1fr)); gap: 4px; }
+.pstep { display: grid; gap: 2px; justify-items: center; background: transparent; border: 0; border-top: 2px solid transparent; padding: 4px 0 0; cursor: pointer; font: 500 11px var(--font-body); color: var(--ink-soft); min-width: 0; }
+.pstep .bar { width: 100%; height: 34px; display: flex; align-items: flex-end; background: var(--void); border-radius: 2px; }
+.pstep .bar i { display: block; width: 100%; background: var(--film-225); border-radius: 2px; }
+.pstep .t { font-size: 10px; }
+.pstep .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; }
+.pstep[aria-current="step"] { border-top-color: var(--ink); color: var(--ink); font-weight: 700; }
+.pstep[aria-current="step"] .bar i { background: #d4483b; }
+@media (max-width: 560px) { .pstep .n { font-size: 9px; } }
+.sample .crystal { width: 44px; height: 44px; }
 .sample h3 { font: 800 22px/1 var(--font-display); text-transform: uppercase; margin: 0 0 6px; }
 .sample p { margin: 0 0 6px; font-size: 13.5px; line-height: 1.45; color: var(--ink-soft); }
 .sample b { color: var(--ink); }
-.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
-@media (max-width: 1100px) { .steps { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-.steps li { counter-increment: s; border-top: 2px solid var(--rule); padding: 6px 0 0; }
-.steps li.sim { border-top-color: var(--ink); }
-.steps h4 { font: 700 14px var(--font-body); margin: 0 0 2px; }
-.steps h4::before { content: counter(s) " "; font: 800 17px/1 var(--font-display); margin-right: 2px; }
-.steps p { margin: 0; font-size: 13px; line-height: 1.4; color: var(--ink-soft); }
-.steps li.sim p { color: var(--ink); }
 .runfoot { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--rule); }
 .runfoot .act { width: auto; padding: 8px 14px; font-size: 13.5px; }
 .runfoot small { font-size: 12.5px; color: var(--ink-soft); max-width: 70ch; }
@@ -268,19 +284,20 @@ button.icon svg { width: 14px; height: 14px; }
           <p>A small MgO crystal: a square grid of atoms. Molybdenum fits on it turned 45° (5.7% off), so a hot film can copy it: <b>epitaxy</b>.</p>
         </div>
       </div>
-      <ol class="steps">
-        <li><h4>Clean</h4><p>Ultrasonic baths of trichloroethylene, acetone, isopropyl alcohol, then DI water, 15 min each.</p></li>
-        <li><h4>Mount</h4><p>Blow dry with nitrogen; stick it to a Mo holder with silver paint.</p></li>
-        <li><h4>Load</h4><p>In through the load lock; the main chamber stays at 10⁻⁹ Torr.</p></li>
-        <li><h4>Bake</h4><p>1,000 °C for 1 hour to drive off water and gas on the surface.</p></li>
-        <li class="sim"><h4>Coat</h4><p>Mo in 20 mTorr argon, sample at 900 °C and spinning. This is the step the simulator runs.</p></li>
-        <li><h4>Anneal</h4><p>1,000 °C for 2 hours so the crystal smooths out its flaws.</p></li>
-        <li><h4>Cool</h4><p>Back to room temperature slowly, over about 12 hours.</p></li>
-        <li><h4>Measure</h4><p>Four-point probe without breaking vacuum, X-ray diffraction for alignment, X-ray reflectivity for thickness.</p></li>
-      </ol>
+      <div class="proc" id="proc" tabindex="-1" aria-label="Step-by-step process">
+        <div class="procstage"><canvas id="procCanvas" aria-label="Animation of the current process step"></canvas></div>
+        <div class="proctext">
+          <div class="pnum" id="procNum"></div>
+          <h3 id="procTitle"></h3>
+          <p id="procText" aria-live="polite"></p>
+          <div class="facts" id="procFacts"></div>
+          <div class="pnav"><button type="button" class="quiet" id="procPrev">Back</button><button type="button" class="act" id="procNext">Next step</button></div>
+          <button type="button" class="act simbtn" id="procSim" data-run="moHot" hidden>Run this step in the simulator</button>
+        </div>
+        <div class="pstrip" id="procStrip" aria-label="Sample temperature through the whole run"></div>
+      </div>
     </div>
     <div class="runfoot">
-      <button type="button" class="act" data-run="moHot">Load the coating step</button>
       <small>Steps follow a published procedure from the Gall group at RPI: <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10052566/" target="_blank" rel="noopener">epitaxial Mo(001) and Mo(011) layers</a>. Films in the study ran from about 4 to 400 nm thick.</small>
     </div>
   </section>
@@ -450,10 +467,11 @@ button.icon svg { width: 14px; height: 14px; }
 </section>
 </main>
 
-<script src="glad.js?v=6"></script>
-<script src="pvd.js?v=6"></script>
+<script src="glad.js?v=7"></script>
+<script src="pvd.js?v=7"></script>
 <script src="vendor/three.min.js"></script>
-<script src="tour.js?v=6"></script>
+<script src="tour.js?v=7"></script>
+<script src="process.js?v=7"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
