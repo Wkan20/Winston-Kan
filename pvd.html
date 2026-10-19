@@ -70,8 +70,8 @@ canvas { display: block; width: 100%; height: auto; max-width: 100%; }
 .legend i.sq { border-radius: 2px; }
 
 /* readouts */
-.readout { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); margin: 0; }
-@media (max-width: 760px) { .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.readout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); margin: 0; }
+@media (max-width: 760px) { .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); } .readout div:last-child { grid-column: span 2; } }
 .readout div { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); min-width: 0; }
 .readout dt { font-size: 12px; color: var(--ink-soft); }
 .readout dd { margin: 2px 0 0; font: 800 26px/1.05 var(--font-display); }
@@ -128,6 +128,39 @@ button.icon svg { width: 14px; height: 14px; }
 .explain p { margin: 0 0 10px; color: var(--ink-soft); max-width: 60ch; }
 .explain b { color: var(--ink); }
 .src { font-size: 13px; color: var(--ink-soft); padding-bottom: 36px; max-width: 110ch; }
+
+
+/* example run + experiments */
+.runsec { padding-top: 34px; }
+.rungrid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.7fr); gap: 20px; margin-top: 14px; align-items: start; }
+@media (max-width: 900px) { .rungrid { grid-template-columns: 1fr; } }
+.subcard h3 { font: 800 30px/1 var(--font-display); text-transform: uppercase; margin: 0 0 4px; }
+.subcard .formula { font-size: 14px; color: var(--ink-soft); margin: 0 0 12px; }
+.subcard p { margin: 0 0 10px; max-width: 52ch; }
+.subcard .crystal { display: block; width: 100%; max-width: 220px; height: auto; margin: 6px 0 12px; }
+.subcard dl { margin: 10px 0 0; border-top: 1px solid var(--rule); }
+.subcard dl div { display: grid; grid-template-columns: 9em minmax(0, 1fr); gap: 10px; padding: 7px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+.subcard dt { font-weight: 600; }
+.subcard dd { margin: 0; color: var(--ink-soft); }
+.steps { list-style: none; margin: 0; padding: 0; counter-reset: s; display: grid; gap: 0; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 44px minmax(0, 1fr); gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--rule); }
+.steps li:first-child { padding-top: 0; }
+.steps li::before { content: counter(s); font: 800 30px/1 var(--font-display); color: var(--ink); }
+.steps h4 { font: 700 16px var(--font-body); margin: 0 0 2px; }
+.steps p { margin: 0; color: var(--ink-soft); max-width: 66ch; }
+.runfoot { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center; margin-top: 16px; }
+.runfoot .act { width: auto; padding: 11px 18px; }
+.runfoot small { font-size: 13px; color: var(--ink-soft); max-width: 60ch; }
+.exps { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; margin-top: 14px; }
+@media (max-width: 760px) { .exps { grid-template-columns: 1fr; } }
+.exp h3 { font: 700 19px/1.25 var(--font-body); margin: 0 0 6px; text-wrap: balance; }
+.exp p { margin: 0 0 10px; color: var(--ink-soft); max-width: 60ch; }
+.exp .look { font-size: 14px; color: var(--ink); }
+.exp .look b { font-weight: 700; }
+.exp .pairbtn { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.exp .pairbtn button { font: 600 14px var(--font-body); border-radius: 3px; padding: 8px 12px; cursor: pointer; border: 1px solid var(--ink); background: transparent; color: var(--ink); }
+.exp .pairbtn button:hover { background: var(--ink); color: var(--plot); }
+.sectionlede { margin: 8px 0 0; max-width: 70ch; color: var(--ink-soft); }
 
 /* tour */
 .tour { padding-block: 28px 8px; }
@@ -189,6 +222,85 @@ button.icon svg { width: 14px; height: 14px; }
 </section>
 
 <main class="pad">
+  <section class="runsec" aria-labelledby="t-run">
+    <h2 class="sectionhead" id="t-run">An example run: molybdenum on MgO</h2>
+    <p class="sectionlede">Real labs follow a careful recipe before and after the coating itself. These steps follow a published procedure from the Gall group at RPI for growing molybdenum films on MgO crystals.</p>
+    <div class="rungrid">
+      <div class="card subcard">
+        <h3>The sample: MgO(001)</h3>
+        <p class="formula">Magnesium oxide, a single crystal, about the size of a fingernail</p>
+        <svg class="crystal" viewBox="0 0 220 120" role="img" aria-label="Top view of the MgO square atom grid with the molybdenum grid on top, turned 45 degrees">
+          <g fill="#8f8aa6">
+            <circle cx="20" cy="20" r="6"/><circle cx="60" cy="20" r="6"/><circle cx="100" cy="20" r="6"/>
+            <circle cx="40" cy="40" r="6"/><circle cx="80" cy="40" r="6"/>
+            <circle cx="20" cy="60" r="6"/><circle cx="60" cy="60" r="6"/><circle cx="100" cy="60" r="6"/>
+            <circle cx="40" cy="80" r="6"/><circle cx="80" cy="80" r="6"/>
+            <circle cx="20" cy="100" r="6"/><circle cx="60" cy="100" r="6"/><circle cx="100" cy="100" r="6"/>
+          </g>
+          <g fill="#ecebf5" stroke="#17141f" stroke-width="1"><circle cx="40" cy="20" r="3.5"/><circle cx="80" cy="20" r="3.5"/><circle cx="20" cy="40" r="3.5"/><circle cx="60" cy="40" r="3.5"/><circle cx="100" cy="40" r="3.5"/><circle cx="40" cy="60" r="3.5"/><circle cx="80" cy="60" r="3.5"/><circle cx="20" cy="80" r="3.5"/><circle cx="60" cy="80" r="3.5"/><circle cx="100" cy="80" r="3.5"/><circle cx="40" cy="100" r="3.5"/><circle cx="80" cy="100" r="3.5"/></g>
+          <g font-family="Schibsted Grotesk, Arial, sans-serif" font-size="11" fill="#17141f">
+            <circle cx="132" cy="30" r="6" fill="#8f8aa6"/><text x="144" y="34">oxygen</text>
+            <circle cx="132" cy="54" r="3.5" fill="#ecebf5" stroke="#17141f"/><text x="144" y="58">magnesium</text>
+            <text x="126" y="86" fill="rgba(23,20,31,.84)">square grid,</text><text x="126" y="100" fill="rgba(23,20,31,.84)">4.212 Å repeat</text>
+          </g>
+        </svg>
+        <p>MgO has the same crystal structure as table salt: a square grid of magnesium and oxygen atoms. It is clear and does not conduct electricity, so when you measure the metal film’s resistance, no current leaks through the sample.</p>
+        <p>Molybdenum’s own square grid fits on top of MgO if it turns 45°, so a hot enough film can copy the crystal underneath. That kind of lined-up growth is called <b>epitaxy</b>.</p>
+        <dl>
+          <div><dt>Face on top</dt><dd>(001), the cube face. <a href="visualizer.html">See it in the plane viewer</a></dd></div>
+          <div><dt>Film on top</dt><dd>Mo(001), turned 45°, 5.7% spacing difference</dd></div>
+        </dl>
+      </div>
+      <div class="card">
+        <ol class="steps">
+          <li><div><h4>Clean</h4><p>Ultrasonic baths of trichloroethylene, acetone, isopropyl alcohol, and deionized water, 15 minutes each. The first solvents strip grease and dirt; each later bath rinses away what the one before left behind.</p></div></li>
+          <li><div><h4>Dry and mount</h4><p>Blow it dry with nitrogen gas, then attach it to a molybdenum holder with silver paint, which holds it in place and carries heat into it.</p></div></li>
+          <li><div><h4>Load</h4><p>Bring it in through the load lock so the main chamber never sees air. The main chamber sits at 10⁻⁹ Torr, about a trillionth of normal air pressure.</p></div></li>
+          <li><div><h4>Bake</h4><p>Heat the sample to 1,000 °C for an hour in vacuum to drive off water and gas stuck to its surface.</p></div></li>
+          <li><div><h4>Coat</h4><p>Sputter molybdenum in 20 mTorr of argon with the sample at 900 °C and spinning, until the film reaches the planned thickness. The study grew films from about 4 to 400 nm thick.</p></div></li>
+          <li><div><h4>Anneal</h4><p>Hold the coated sample at 1,000 °C for 2 hours so the film’s crystal can smooth out its flaws.</p></div></li>
+          <li><div><h4>Cool</h4><p>Let it cool back to room temperature over about 12 hours, keeping the temperature change gentle.</p></div></li>
+          <li><div><h4>Measure</h4><p>Measure resistance with a four-point probe without breaking vacuum, check the crystal alignment with X-ray diffraction, and measure the thickness with X-ray reflectivity.</p></div></li>
+        </ol>
+        <div class="runfoot">
+          <button type="button" class="act" data-run="moHot">Run the coating step in the simulator</button>
+          <small>Source: the Gall group’s study of <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10052566/" target="_blank" rel="noopener">epitaxial Mo(001) and Mo(011) layers</a>. The simulator models only the coating step, as a 2D slice.</small>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="runsec" aria-labelledby="t-exp">
+    <h2 class="sectionhead" id="t-exp">Experiments to try</h2>
+    <p class="sectionlede">Each one changes a single setting so you can see what it does. Load a run, watch the coating grow, then load the other and compare.</p>
+    <div class="exps">
+      <div class="card exp">
+        <h3>Why heat the MgO to 900 °C?</h3>
+        <p>Molybdenum on MgO, everything the same except the sample temperature.</p>
+        <p class="look"><b>Look at:</b> “Lines up with the sample’s crystal?” and how solid the coating is.</p>
+        <div class="pairbtn"><button type="button" data-run="moHot">Load: 900 °C</button><button type="button" data-run="moCold">Load: room temperature</button></div>
+      </div>
+      <div class="card exp">
+        <h3>Does the sample need to be a crystal?</h3>
+        <p>The same hot molybdenum run, on MgO and then on a glass slide.</p>
+        <p class="look"><b>Look at:</b> glass has no crystal pattern for the film to copy.</p>
+        <div class="pairbtn"><button type="button" data-run="moHot">Load: on MgO</button><button type="button" data-run="moGlass">Load: on glass</button></div>
+      </div>
+      <div class="card exp">
+        <h3>Why use so little gas?</h3>
+        <p>Copper on an oxidized silicon wafer, with a little argon and then a lot.</p>
+        <p class="look"><b>Look at:</b> “Atoms that fly straight,” the dots in the chamber, and the gaps in the coating.</p>
+        <div class="pairbtn"><button type="button" data-run="cuLow">Load: 1 mTorr</button><button type="button" data-run="cuHigh">Load: 20 mTorr</button></div>
+      </div>
+      <div class="card exp">
+        <h3>Why put titanium down first?</h3>
+        <p>Copper alone, then copper on a thin titanium layer. Titanium bonds to the oxide and helps the copper stick; the simulator shows the layers but not that chemistry.</p>
+        <p class="look"><b>Look at:</b> the two colors in the close-up and the time each layer takes.</p>
+        <div class="pairbtn"><button type="button" data-run="cuAlone">Load: copper alone</button><button type="button" data-run="tiCu">Load: titanium, then copper</button></div>
+      </div>
+    </div>
+  </section>
+
   <h2 class="sectionhead" id="simulator">The simulator</h2>
   <section class="tool" aria-label="Simulator">
     <div class="views">
@@ -216,6 +328,7 @@ button.icon svg { width: 14px; height: 14px; }
         <div><dt>Coating type</dt><dd id="rZ" class="two">—</dd></div>
         <div><dt>How solid</dt><dd id="rD">—</dd></div>
         <div><dt>Column lean</dt><dd id="rC">—</dd></div>
+        <div><dt>Lines up with the sample’s crystal?</dt><dd id="rE">—</dd></div>
       </dl>
 
       <div class="story">
@@ -241,12 +354,12 @@ button.icon svg { width: 14px; height: 14px; }
         <div class="gun">
           <h4><i style="background:var(--gun1)"></i>Gun 1 <span style="font-weight:400;color:var(--ink-soft)">· on the left</span></h4>
           <div class="ctl"><div class="h"><label for="mat0">Metal</label></div><select id="mat0"></select></div>
-          <div class="ctl"><div class="h"><label for="pow0">Power</label><output id="pow0Out"></output></div><input type="range" id="pow0" min="25" max="300" step="25"><div class="ends"><span>slower</span><span>faster</span></div></div>
+          <div class="ctl"><div class="h"><label for="pow0">Current</label><output id="pow0Out"></output></div><input type="range" id="pow0" min="0.05" max="0.9" step="0.05"><div class="ends"><span>slower</span><span>faster</span></div></div>
         </div>
         <div class="gun">
           <h4><i style="background:var(--gun2)"></i>Gun 2 <span style="font-weight:400;color:var(--ink-soft)">· on the right</span></h4>
           <div class="ctl"><div class="h"><label for="mat1">Metal</label></div><select id="mat1"></select></div>
-          <div class="ctl"><div class="h"><label for="pow1">Power</label><output id="pow1Out"></output></div><input type="range" id="pow1" min="25" max="300" step="25"><div class="ends"><span>slower</span><span>faster</span></div></div>
+          <div class="ctl"><div class="h"><label for="pow1">Current</label><output id="pow1Out"></output></div><input type="range" id="pow1" min="0.05" max="0.9" step="0.05"><div class="ends"><span>slower</span><span>faster</span></div></div>
         </div>
       </div>
       <div class="group">
@@ -290,9 +403,13 @@ button.icon svg { width: 14px; height: 14px; }
       <div class="group">
         <h3>Sample</h3>
         <div class="ctl">
+          <div class="h"><label for="substrate">What it’s made of</label></div>
+          <select id="substrate"></select>
+        </div>
+        <div class="ctl">
           <div class="h"><label for="temp">Sample temperature</label><output id="tempOut"></output></div>
-          <input type="range" id="temp" min="25" max="800" step="25">
-          <div class="ends"><span>room temperature</span><span>800 °C</span></div>
+          <input type="range" id="temp" min="25" max="1000" step="25">
+          <div class="ends"><span>room temperature</span><span>1,000 °C</span></div>
         </div>
       </div>
     </div>
@@ -328,20 +445,23 @@ button.icon svg { width: 14px; height: 14px; }
   const $ = (id) => document.getElementById(id);
   const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
   const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
-  const OFFSET = [-20, 20];          // gun 1 on the left, gun 2 on the right
+  const OFFSET = [-20, 20];
+  const VOLTS = 350;                 // typical DC magnetron discharge voltage; power = current × voltage
+  const watts = (i) => Math.round(state.guns[i].amps * VOLTS);
+  const aFmt = (a) => a.toFixed(2) + ' A';          // gun 1 on the left, gun 2 on the right
   const FW = 360, FH = 240, NM_PER_ATOM = 0.25, MAX_NM = 50;
   const clone = (o) => JSON.parse(JSON.stringify(o));
   const DEFAULTS = {
-    guns: [{ material: 'Ti', power: 100 }, { material: 'Cu', power: 100 }],
+    guns: [{ material: 'Ti', amps: 0.3 }, { material: 'Cu', amps: 0.3 }],
     recipe: [{ gun: 0, nm: 10 }, { gun: 1, nm: 30 }],
-    pressure: 3, distance: 10, tilt: 0, rotation: 'none', period: 4, tempC: 25,
+    pressure: 3, distance: 10, tilt: 0, rotation: 'none', period: 4, tempC: 25, substrate: 'sio2',
   };
   const multilayer = []; for (let i = 0; i < 5; i++) multilayer.push({ gun: 0, nm: 4 }, { gun: 1, nm: 4 });
   const PRESETS = [
     { label: 'Titanium + copper', s: {} },
-    { label: 'Copper/ruthenium stack', s: { guns: [{ material: 'Cu', power: 100 }, { material: 'Ru', power: 150 }], recipe: multilayer } },
+    { label: 'Copper/ruthenium stack', s: { guns: [{ material: 'Cu', amps: 0.3 }, { material: 'Ru', amps: 0.45 }], recipe: multilayer } },
     { label: 'Solid copper', s: { recipe: [{ gun: 1, nm: 40 }], pressure: 1, tempC: 250 } },
-    { label: 'Porous tungsten', s: { guns: [{ material: 'W', power: 150 }, { material: 'Cu', power: 100 }], recipe: [{ gun: 0, nm: 40 }], pressure: 20 } },
+    { label: 'Porous tungsten', s: { guns: [{ material: 'W', amps: 0.45 }, { material: 'Cu', amps: 0.3 }], recipe: [{ gun: 0, nm: 40 }], pressure: 20 } },
     { label: 'Slanted columns', s: { recipe: [{ gun: 1, nm: 40 }], pressure: 1, tilt: 80 } },
     { label: 'Straight posts', s: { recipe: [{ gun: 1, nm: 40 }], pressure: 1, tilt: 80, rotation: 'continuous', period: 3 } },
   ];
@@ -349,7 +469,7 @@ button.icon svg { width: 14px; height: 14px; }
 
   const toP = (v) => Math.pow(10, (v / 100) * Math.log10(30));
   const fromP = (p) => Math.round((Math.log10(p) / Math.log10(30)) * 100);
-  const gunState = (i) => ({ ...state, material: state.guns[i].material, power: state.guns[i].power, offset: OFFSET[i] });
+  const gunState = (i) => ({ ...state, material: state.guns[i].material, power: watts(i), offset: OFFSET[i] });
   const usedGuns = () => [...new Set(state.recipe.map((l) => l.gun))].sort();
   const pFmt = (p) => p.toFixed(p < 10 ? 1 : 0);
   const rateFmt = (r) => (r < 1 ? r.toFixed(2) : r.toFixed(1));
@@ -358,16 +478,18 @@ button.icon svg { width: 14px; height: 14px; }
   for (const sel of ['mat0', 'mat1']) for (const [k, m] of Object.entries(PVD.MATERIALS)) {
     const o = document.createElement('option'); o.value = k; o.textContent = `${m.name} (melts at ${m.Tm - 273} °C)`; $(sel).appendChild(o);
   }
+  for (const [k, sub] of Object.entries(PVD.SUBSTRATES)) { const o = document.createElement('option'); o.value = k; o.textContent = sub.name + (sub.crystal ? '' : ' (amorphous)'); $('substrate').appendChild(o); }
   function syncControls() {
     for (const i of [0, 1]) {
       $('mat' + i).value = state.guns[i].material;
-      $('pow' + i).value = state.guns[i].power; $('pow' + i + 'Out').textContent = state.guns[i].power + ' W';
+      $('pow' + i).value = state.guns[i].amps; $('pow' + i + 'Out').textContent = `${aFmt(state.guns[i].amps)} · ${watts(i)} W`;
     }
     $('pressure').value = fromP(state.pressure); $('pressureOut').textContent = pFmt(state.pressure) + ' mTorr';
     $('distance').value = state.distance; $('distanceOut').textContent = state.distance + ' cm';
     $('tilt').value = state.tilt; $('tiltOut').textContent = state.tilt + '°';
     $('rotation').value = state.rotation; $('periodRow').hidden = state.rotation === 'none';
     $('period').value = state.period; $('periodOut').textContent = (state.period * NM_PER_ATOM).toFixed(2).replace(/0$/, '') + ' nm';
+    $('substrate').value = state.substrate;
     $('temp').value = state.tempC; $('tempOut').textContent = state.tempC + ' °C';
     [...$('presets').children].forEach((b, i) => {
       const want = { ...clone(DEFAULTS), ...clone(PRESETS[i].s) };
@@ -427,14 +549,15 @@ button.icon svg { width: 14px; height: 14px; }
     clearTimeout(debounce); debounce = setTimeout(restart, delay);
   }
   const on = (id, set) => $(id).addEventListener('input', (e) => { set(e.target.value); changed(); });
-  on('pow0', (v) => (state.guns[0].power = +v));
-  on('pow1', (v) => (state.guns[1].power = +v));
+  on('pow0', (v) => (state.guns[0].amps = +v));
+  on('pow1', (v) => (state.guns[1].amps = +v));
   on('pressure', (v) => (state.pressure = toP(+v)));
   on('distance', (v) => (state.distance = +v));
   on('tilt', (v) => (state.tilt = +v));
   on('period', (v) => (state.period = +v));
   on('temp', (v) => (state.tempC = +v));
   $('mat0').addEventListener('change', (e) => { state.guns[0].material = e.target.value; changed(0); });
+  $('substrate').addEventListener('change', (e) => { state.substrate = e.target.value; changed(0); });
   $('mat1').addEventListener('change', (e) => { state.guns[1].material = e.target.value; changed(0); });
   $('rotation').addEventListener('change', (e) => { state.rotation = e.target.value; changed(0); });
   $('regrow').addEventListener('click', () => { seed++; restart(); });
@@ -445,14 +568,16 @@ button.icon svg { width: 14px; height: 14px; }
   fcv.width = FW; fcv.height = FH;
   const img = fctx.createImageData(FW, FH);
   const VOID = [236, 235, 245];
+  const SUBCOLOR = { mgo: '#8f8aa6', sio2: '#3b3650', glass: '#a9b0cf' };
   const GUNRGB = [[23, 20, 31], [42, 120, 214]];
   function setPx(idx, c) { const x = idx % FW, y = (idx / FW) | 0, p = ((FH - 1 - y) * FW + x) * 4; img.data[p] = c[0]; img.data[p + 1] = c[1]; img.data[p + 2] = c[2]; img.data[p + 3] = 255; }
   function restart() {
     sources = [0, 1].map((i) => { const s = gunState(i); return PVD.atomSource(s, PVD.analyze(s)); });
     let acc = 0; bounds = state.recipe.map((l) => (acc += l.nm) / NM_PER_ATOM);
     layerNow = 0;
+    const recipe = clone(state.recipe); // the run keeps its own copy until the next restart
     sim = Glad.createSim({ width: FW, height: FH, seed, source: (rand, layers) => {
-      const g = state.recipe[layerNow].gun;
+      const g = recipe[Math.min(layerNow, recipe.length - 1)].gun;
       const a = sources[g](rand, layers); a.tag = g + 1; return a;
     } });
     drawn = 0; done = false;
@@ -473,7 +598,7 @@ button.icon svg { width: 14px; height: 14px; }
   function paint() {
     for (; drawn < sim.count; drawn++) setPx(sim.order[drawn], GUNRGB[(sim.tags[drawn] || 1) - 1]);
     fctx.putImageData(img, 0, 0);
-    fctx.fillStyle = '#3b3650'; fctx.fillRect(0, FH - 2, FW, 2);
+    fctx.fillStyle = SUBCOLOR[state.substrate]; fctx.fillRect(0, FH - 3, FW, 3);
   }
 
   // ---------- numbers and story ----------
@@ -513,6 +638,9 @@ button.icon svg { width: 14px; height: 14px; }
       else { const t = sim.columnTilt(); if (Number.isFinite(t) && Math.abs(t) > 3) { tilt = Math.round(Math.abs(t)) + '°'; why = 'columns lean toward the metal source'; } else why = 'no clear columns this time'; }
     } else if (state.rotation !== 'none') why = 'spinning keeps the columns upright';
     $('rC').innerHTML = `${tilt}<small>${why}</small>`;
+    const bottom = state.recipe[0].gun;
+    const ep = PVD.epitaxy(state.guns[bottom].material, state.substrate, A[bottom].th);
+    $('rE').innerHTML = `${ep.verdict}<small>for the first layer, ${M[bottom].name.toLowerCase()}, on ${PVD.SUBSTRATES[state.substrate].short} (rough guide)</small>`;
     const active = state.recipe[Math.min(layerNow, state.recipe.length - 1)];
     $('filmSub').textContent = `A slice through the coating, 90 nm wide (about a thousandth of a hair). ${done ? 'Finished.' : `Growing layer ${layerNow + 1} of ${state.recipe.length}: ${name(active.gun).toLowerCase()}.`}`;
     $('chamberSub').textContent = `Each dot is a metal atom knocked off a target. Not to scale. ${done ? 'Both guns are off.' : `Gun ${active.gun + 1} (${name(active.gun).toLowerCase()}) is on.`}`;
@@ -543,6 +671,8 @@ button.icon svg { width: 14px; height: 14px; }
         ? `The sample is tilted ${state.tilt}°, so atoms come in at a low angle and every bump blocks the spot behind it.${state.rotation === 'none' ? ' The coating grows as slanted columns.' : state.rotation === 'continuous' ? ' Spinning the sample makes the columns grow straight up.' : ' Flipping the sample makes the columns zigzag.'}`
         : `The sample is tilted ${state.tilt}°, but the gas knocks atoms around so much that they arrive from every direction anyway, so the tilt does little. Tilting only works with less gas.`);
     }
+    const bottom = state.recipe[0].gun;
+    p.push(`The first layer touches the sample. ${PVD.epitaxy(state.guns[bottom].material, state.substrate, A[bottom].th).text}`);
     const steps = state.recipe.map((l) => `${l.nm} nm of ${name(l.gun).toLowerCase()} (${fmtTime(l.nm / A[l.gun].rate)})`);
     p.push(`Layers: ${steps.join(', then ')}.`);
     $('story').innerHTML = p.map((t) => `<p>${t}</p>`).join('');
@@ -595,7 +725,7 @@ button.icon svg { width: 14px; height: 14px; }
     // gun color tag
     ctx.fillStyle = css(g ? '--gun2' : '--gun1'); ctx.fillRect(-gun.half * 0.85, -38, gun.half * 1.7, 4);
     if (on) {
-      const glow = Math.min(0.85, 0.25 + state.guns[g].power / 400);
+      const glow = Math.min(0.85, 0.25 + watts(g) / 400);
       const pg = ctx.createRadialGradient(0, 8, 2, 0, 8, gun.half * (0.9 + state.pressure / 40));
       const pc = css('--film-465');
       pg.addColorStop(0, hexA(pc, glow)); pg.addColorStop(1, hexA(pc, 0));
@@ -609,7 +739,7 @@ button.icon svg { width: 14px; height: 14px; }
     ctx.font = '600 12px "Schibsted Grotesk", Arial, sans-serif';
     ctx.fillText(`Gun ${g + 1} · ${PVD.MATERIALS[state.guns[g].material].name}`, gun.x, gun.y + 54);
     ctx.font = '11px "Schibsted Grotesk", Arial, sans-serif';
-    ctx.fillText(on ? `on, ${state.guns[g].power} W` : 'off, shutter closed', gun.x, gun.y + 68);
+    ctx.fillText(on ? `on, ${aFmt(state.guns[g].amps)}` : 'off, shutter closed', gun.x, gun.y + 68);
   }
   function drawChamber(t) {
     const dpr = window.devicePixelRatio || 1;
@@ -642,7 +772,7 @@ button.icon svg { width: 14px; height: 14px; }
     ctx.restore();
     ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(G.sub.x, G.sub.y + 12); ctx.lineTo(G.sub.x, G.box.y + G.box.h); ctx.stroke();
     ctx.fillStyle = css('--ink-soft'); ctx.textAlign = 'left'; ctx.font = '12px "Schibsted Grotesk", Arial, sans-serif';
-    ctx.fillText(state.tempC > 60 ? `sample, ${state.tempC} °C` : 'sample', G.sub.x + G.sub.half + 10, G.sub.y + 22);
+    ctx.fillText(`${PVD.SUBSTRATES[state.substrate].short} sample${state.tempC > 60 ? `, ${state.tempC} °C` : ''}`, G.sub.x + G.sub.half + 10, G.sub.y + 22);
     // distance from the active (or first) gun to the substrate
     const dg = G.guns[act >= 0 ? act : 0];
     ctx.strokeStyle = 'rgba(23,20,31,.5)'; ctx.lineWidth = 1; ctx.setLineDash([4, 4]);
@@ -725,6 +855,23 @@ button.icon svg { width: 14px; height: 14px; }
       ctx.font = '11px "Schibsted Grotesk", Arial, sans-serif';
     });
   }
+
+  // ---------- example runs and experiments ----------
+  const MO_MGO = { guns: [{ material: 'Mo', amps: 0.45 }, { material: 'Cu', amps: 0.3 }], recipe: [{ gun: 0, nm: 40 }], pressure: 20, distance: 10, tilt: 0, rotation: 'continuous', period: 4, tempC: 900, substrate: 'mgo' };
+  const RUNS = {
+    moHot: MO_MGO,
+    moCold: { ...MO_MGO, tempC: 25 },
+    moGlass: { ...MO_MGO, substrate: 'glass' },
+    cuLow: { recipe: [{ gun: 1, nm: 40 }], pressure: 1 },
+    cuHigh: { recipe: [{ gun: 1, nm: 40 }], pressure: 20 },
+    cuAlone: { recipe: [{ gun: 1, nm: 40 }] },
+    tiCu: {},
+  };
+  document.querySelectorAll('[data-run]').forEach((b) => b.addEventListener('click', () => {
+    state = { ...clone(DEFAULTS), ...clone(RUNS[b.dataset.run]) };
+    changed(0);
+    $('simulator').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+  }));
 
   // ---------- loop ----------
   let emitAcc = 0, tick = 0, finalized = false;

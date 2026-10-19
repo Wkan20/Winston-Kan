@@ -5,7 +5,9 @@ How each knob on a magnetron sputtering system changes the film, and how the sim
 ## The page
 
 1. **A tour of the machine:** a 3D model (three.js, built from simple shapes in `tour.js`) with eleven slides: the chamber, pumps, load lock, argon inlet, magnetron guns, plasma, shutters, sample holder and heater, thickness monitor, and how they work together.
-2. **The simulator:** two guns, a layer recipe (bottom to top), and settings for gas, position, spinning, and sample temperature. Only one gun runs at a time; the other sits behind its shutter.
+2. **An example run:** molybdenum on an MgO(001) crystal, step by step: clean, dry and mount, load, bake, coat, anneal, cool, measure. It follows a published procedure (Gall group, RPI: [Anisotropic resistivity size effect in epitaxial Mo(001) and Mo(011) layers](https://pmc.ncbi.nlm.nih.gov/articles/PMC10052566/)): solvent baths, 10⁻⁹ Torr base pressure, a 1000 °C degas, sputtering at 20 mTorr Ar onto a 900 °C rotating substrate, a 1000 °C anneal, and a slow cool.
+3. **Experiments to try:** paired buttons that load two settings to compare: hot vs. room-temperature Mo on MgO, MgO vs. glass, 1 vs. 20 mTorr copper, and copper with or without a titanium layer under it.
+4. **The simulator:** two guns, a layer recipe (bottom to top), and settings for gas, position, spinning, and sample temperature. Only one gun runs at a time; the other sits behind its shutter.
 
 ## The system in one paragraph
 
@@ -17,12 +19,16 @@ A sputter chamber is pumped down to high vacuum, then filled with a little argon
 |---|---|---|
 | **Argon pressure** | How often sputtered atoms hit argon on the way (mean free path) | Low pressure: atoms arrive fast and straight, film is denser. High pressure: atoms arrive slow and from random directions, film is more porous. |
 | **Two guns and layers** | Each gun holds a different metal; switching guns grows one metal on top of another | A thin titanium layer under copper helps it stick; alternating thin layers makes a multilayer stack. |
-| **Power** | How many ions hit the target per second | Faster deposition. Slightly less time for each atom to settle before it's buried. |
+| **Current (amps)** | How many ions hit the target per second. Guns are often run at a set current; power = current × voltage, taken here as about 350 V | Faster deposition. Slightly less time for each atom to settle before it's buried. |
 | **Target material** | How many atoms each ion knocks off (sputter yield), and the melting point | Copper sputters fast; tungsten and titanium slowly. High-melting-point metals give porous films at room temperature. |
 | **Distance** | How far atoms travel | Longer distance spreads atoms out (slower rate) and adds collisions. |
 | **Substrate tilt** | The angle atoms arrive at | Steep angles cause shadowing: tilted columns (GLAD). |
 | **Rotation** | Changes the arrival direction during growth | Continuous rotation straightens columns into posts; flipping makes zigzags. |
 | **Substrate temperature** | How far landed atoms can wander | Hotter substrate fills gaps: denser films and bigger grains. |
+
+## Substrates and lining up with the crystal
+
+The sample can be an MgO(001) crystal, a silicon wafer with oxide, or glass. Oxide and glass are amorphous, so there is no pattern to copy. On MgO (a = 4.212 Å) the check compares spacings: fcc metals sit cube on cube, bcc metals turn 45° and match a/√2 = 2.978 Å. Molybdenum (a = 3.147 Å) is 5.7% off after the 45° turn, matching the published Mo[010] ∥ MgO[110] alignment. The verdict is "Likely" when the mismatch is under 8% and T/Tm is at least 0.25; copper on MgO is 14% off, so "Unlikely". This is a rough guide, not a growth model.
 
 ## The physics in the model
 

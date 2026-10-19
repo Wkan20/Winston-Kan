@@ -16,41 +16,41 @@
   // ---------- the slides ----------
   const SLIDES = [
     { part: null, title: 'A machine that paints with atoms',
-      text: 'A sputtering machine coats a sample, like a silicon wafer, with an even layer of metal only a few hundred atoms thick. Chip factories use machines like this to lay down the metal wiring inside chips. This tour walks through the parts, one at a time.',
-      cam: { f: [0.6, 0, 0], d: 14, t: 0.65, p: 0.32 } },
+      text: 'A sputtering machine coats a sample, like a silicon wafer or a small crystal, with an even layer of metal only a few hundred atoms thick. Chip factories use machines like this to lay down the metal wiring inside chips. This tour walks through the parts, one at a time.',
+      cam: { f: [0.8, -0.2, 0], d: 15, t: 0.62, p: 0.3 } },
     { part: 'chamber', label: 'Vacuum chamber', title: 'The vacuum chamber',
-      text: 'Everything happens inside a sealed steel chamber. Before coating, almost all the air is pumped out, because stray air would react with the metal and ruin the coating. The windows let you watch the glow inside.',
-      cam: { f: [0, 0, 0], d: 10.5, t: 0.45, p: 0.28 } },
+      text: 'Everything happens inside a sealed steel chamber. Before coating, almost all the air is pumped out, because stray air would react with the metal and ruin the coating. A window on the front lets you watch the glow inside.',
+      cam: { f: [0, 0, 0], d: 10.5, t: 0.42, p: 0.25 } },
     { part: 'pumps', label: 'Pumps', title: 'The pumps',
-      text: 'Two pumps work in a relay. A roughing pump removes most of the air. Then a turbo pump, a fan spinning tens of thousands of times a minute, knocks the remaining gas molecules out. Together they reach about a billionth of normal air pressure.',
-      cam: { f: [0, -1.6, -3.1], d: 7.5, t: 2.55, p: 0.22 } },
+      text: 'Two pumps work in a relay. A roughing pump removes most of the air. Then a turbo pump, a fan spinning tens of thousands of times a minute, knocks the remaining gas molecules out. A good system reaches about a trillionth of normal air pressure.',
+      cam: { f: [0, -1.7, -4.3], d: 10.5, t: 2.3, p: 0.22 } },
     { part: 'loadlock', label: 'Load lock', title: 'The load lock',
       text: 'Samples go in through a small side chamber called the load lock. Only the load lock is opened to air and pumped down again; then a valve opens and a long rod slides the sample into the main chamber. The main chamber stays clean the whole time.',
-      cam: { f: [3.8, -0.85, 0], d: 7, t: 1.05, p: 0.25 } },
+      cam: { f: [3.9, -0.85, 0], d: 7.5, t: 1.0, p: 0.24 } },
     { part: 'gas', label: 'Argon inlet', title: 'The argon inlet',
-      text: 'Once the chamber is empty, a valve lets a tiny, steady trickle of argon gas back in. Argon does not react with anything, so it can be used to knock metal atoms loose without changing them. The amount of argon is one of the main settings.',
-      cam: { f: [-3.2, 0.2, 1.2], d: 6, t: -0.55, p: 0.2 } },
+      text: 'Once the chamber is empty, a flow controller lets a tiny, steady trickle of argon gas back in from a bottle. Argon does not react with anything, so it can knock metal atoms loose without changing them. The amount of argon is one of the main settings.',
+      cam: { f: [-3.3, -0.2, 1.0], d: 7, t: -0.6, p: 0.18 } },
     { part: 'guns', label: 'Magnetron guns', title: 'The magnetron guns',
       text: 'Each gun holds a disk of metal, the target, with strong magnets behind it. This machine has two guns, so it can hold two different metals. The magnets keep the plasma close to the target, which makes coating faster.',
-      cam: { f: [0, 1.25, 0], d: 6.2, t: 0.3, p: 0.22 } },
+      cam: { f: [0, 1.15, 0], d: 6.4, t: 0.3, p: 0.2 } },
     { part: 'plasma', label: 'Plasma', title: 'The plasma',
       text: 'A high voltage on the target turns the argon in front of it into a glowing purple plasma. Argon ions in the plasma slam into the target and knock metal atoms off. This knocking loose is called sputtering.',
-      cam: { f: [0.9, 0.85, 0], d: 4.6, t: 0.55, p: 0.12 } },
+      cam: { f: [0.85, 0.75, 0], d: 4.8, t: 0.6, p: 0.1 } },
     { part: 'shutters', label: 'Shutters', title: 'The shutters',
-      text: 'A metal flap in front of each gun blocks atoms from reaching the sample. The gun is turned on with its shutter closed for a minute to clean the target’s surface, then the shutter opens and the coating starts. Closing it stops the coating at exactly the right moment.',
-      cam: { f: [-1.0, 0.75, 0.2], d: 4.6, t: -0.35, p: 0.15 } },
-    { part: 'holder', label: 'Sample holder', title: 'The sample holder',
-      text: 'The sample sits on a holder below the guns. A heater underneath can warm it, which helps atoms settle into a tighter coating; it is heated and cooled slowly so the sample doesn’t crack. A motor can spin or tilt the holder to change how the coating grows.',
-      cam: { f: [0, -0.95, 0], d: 5.2, t: 0.5, p: 0.42 } },
+      text: 'A metal flap in front of each gun blocks atoms from reaching the sample. The gun runs for a minute with its shutter closed to clean the target’s surface, then the shutter swings open and coating starts. Closing it stops the coating at exactly the right moment.',
+      cam: { f: [-0.85, 0.65, 0.2], d: 4.8, t: -0.3, p: 0.14 } },
+    { part: 'holder', label: 'Sample holder', title: 'The sample and its holder',
+      text: 'The sample, here a small square MgO crystal, is clamped to a holder below the guns. A heater underneath can warm it, which helps atoms settle into a tighter coating; it is heated and cooled slowly so nothing cracks. A motor spins the holder so the coating comes out even.',
+      cam: { f: [0, -0.95, 0], d: 5, t: 0.5, p: 0.45 } },
     { part: 'qcm', label: 'Thickness monitor', title: 'The thickness monitor',
       text: 'Next to the sample sits a tiny quartz crystal that vibrates millions of times a second. As metal lands on it, the extra weight slows the vibration, so the machine can tell how fast the coating is growing, down to fractions of a nanometer.',
-      cam: { f: [1.35, -0.55, 0.65], d: 3.4, t: 0.85, p: 0.3 } },
+      cam: { f: [1.25, -0.55, 0.6], d: 3.6, t: 0.85, p: 0.32 } },
     { part: 'run', label: null, title: 'Putting it together',
-      text: 'Pump down, let in argon, light the plasma, clean the target behind the shutter, then open it. Metal atoms fly across the chamber and build the coating atom by atom. The simulator below lets you change each of these settings and see what happens.',
-      cam: { f: [0.3, 0, 0], d: 11.5, t: 0.7, p: 0.3 } },
+      text: 'Pump down, let in argon, light the plasma, clean the target behind the shutter, then open it. Metal atoms fly across the chamber and build the coating atom by atom. The example run and the simulator below walk through a real recipe.',
+      cam: { f: [0.3, -0.1, 0], d: 11.5, t: 0.68, p: 0.28 } },
   ];
 
-  // ---------- scene ----------
+  // ---------- renderer ----------
   const canvas = $('#tourCanvas');
   let renderer;
   try { renderer = new T.WebGLRenderer({ canvas, antialias: true, alpha: true }); }
@@ -59,117 +59,162 @@
   renderer.setPixelRatio(Math.min(2, window.devicePixelRatio || 1));
   const scene = new T.Scene();
   const camera = new T.PerspectiveCamera(32, 16 / 10, 0.1, 100);
-  scene.add(new T.HemisphereLight(0xffffff, 0x8d8a9c, 0.85));
-  const sun = new T.DirectionalLight(0xffffff, 0.75); sun.position.set(5, 8, 6); scene.add(sun);
+  scene.add(new T.HemisphereLight(0xffffff, 0xb9b7c9, 0.9));
+  const key = new T.DirectionalLight(0xffffff, 0.7); key.position.set(5, 9, 7); scene.add(key);
+  const fill = new T.DirectionalLight(0xdfe3ff, 0.3); fill.position.set(-6, 3, -4); scene.add(fill);
 
   const C = {
-    steel: 0x9c9aab, dark: 0x2a2733, ink: 0x17141f, wafer: 0x54a2ee, plasma: 0xc585e8,
-    heater: 0xdec193, ti: 0xb5b4bf, cu: 0xc27a4e, glass: 0xbfc3dd, accent: 0xeb6834,
+    steel: 0xa9a7b8, steelDark: 0x77758a, dark: 0x2b2836, ink: 0x17141f, mgo: 0xf3f1f8,
+    plasma: 0xc585e8, heater: 0xdec193, ti: 0xbdbcc7, cu: 0xc8835a, glass: 0xc9cce6, accent: 0xeb6834, gasBottle: 0x5f6f86,
   };
-  const parts = {}; // name → array of meshes
-  const add = (name, mesh) => { (parts[name] = parts[name] || []).push(mesh); scene.add(mesh); return mesh; };
-  const mat = (color, opts = {}) => new T.MeshStandardMaterial({ color, metalness: 0.35, roughness: 0.55, ...opts });
-  const cyl = (rt, rb, h, m, seg = 40) => new T.Mesh(new T.CylinderGeometry(rt, rb, h, seg), m);
-  // a cylinder between two points
-  function rod(a, b, r, m) {
+
+  // ---------- part bookkeeping ----------
+  // every mesh is registered under a part name; each gets its own outline
+  const parts = {};
+  const outlines = [];
+  function reg(name, mesh, opts = {}) {
+    (parts[name] = parts[name] || []).push(mesh);
+    mesh.userData.part = name;
+    if (opts.outline !== false) {
+      const edges = new T.LineSegments(new T.EdgesGeometry(mesh.geometry, 35), new T.LineBasicMaterial({ color: C.ink, transparent: true, opacity: 0.22 }));
+      edges.userData.part = name; mesh.add(edges); outlines.push(edges);
+    }
+    return mesh;
+  }
+  const M = (color, o = {}) => new T.MeshStandardMaterial({ color, metalness: 0.45, roughness: 0.45, ...o });
+  const cyl = (r, h, m, seg = 48) => new T.Mesh(new T.CylinderGeometry(r, r, h, seg), m);
+  const box = (x, y, z, m) => new T.Mesh(new T.BoxGeometry(x, y, z), m);
+  function tube(a, b, r, m, seg = 20) {
     const A = new T.Vector3(...a), B = new T.Vector3(...b);
-    const mesh = cyl(r, r, A.distanceTo(B), m, 16);
+    const mesh = new T.Mesh(new T.CylinderGeometry(r, r, A.distanceTo(B), seg), m);
     mesh.position.copy(A).add(B).multiplyScalar(0.5);
     mesh.quaternion.setFromUnitVectors(new T.Vector3(0, 1, 0), B.clone().sub(A).normalize());
     return mesh;
   }
+  const put = (name, mesh, parent = scene, opts) => { parent.add(mesh); return reg(name, mesh, opts); };
 
-  // chamber: see-through wall, solid flanges, a viewport
-  const R = 2.4, H = 3.2;
-  const wall = cyl(R, R, H, new T.MeshStandardMaterial({ color: C.glass, transparent: true, opacity: 0.16, depthWrite: false, side: T.DoubleSide, metalness: 0.1, roughness: 0.2 }), 64);
-  add('chamber', wall);
-  const wallEdges = new T.LineSegments(new T.EdgesGeometry(new T.CylinderGeometry(R, R, H, 24, 1, true)), new T.LineBasicMaterial({ color: C.ink, transparent: true, opacity: 0.18 }));
-  add('chamber', wallEdges);
-  for (const y of [H / 2, -H / 2]) { const f = cyl(R + 0.2, R + 0.2, 0.16, mat(C.steel)); f.position.y = y; add('chamber', f); }
-  const port = rod([0, 0.35, R - 0.05], [0, 0.35, R + 0.25], 0.45, mat(C.steel)); add('chamber', port);
-  const glassWin = cyl(0.38, 0.38, 0.04, new T.MeshStandardMaterial({ color: 0x6e7aa8, transparent: true, opacity: 0.55 }));
-  glassWin.rotation.x = Math.PI / 2; glassWin.position.set(0, 0.35, R + 0.28); add('chamber', glassWin);
+  // ---------- ground shadow ----------
+  {
+    const c = document.createElement('canvas'); c.width = c.height = 128;
+    const g = c.getContext('2d'); const grd = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+    grd.addColorStop(0, 'rgba(23,20,31,0.28)'); grd.addColorStop(1, 'rgba(23,20,31,0)');
+    g.fillStyle = grd; g.fillRect(0, 0, 128, 128);
+    const shadow = new T.Mesh(new T.PlaneGeometry(13, 9), new T.MeshBasicMaterial({ map: new T.CanvasTexture(c), transparent: true, depthWrite: false }));
+    shadow.rotation.x = -Math.PI / 2; shadow.position.set(0.8, -2.95, -0.6); scene.add(shadow);
+  }
 
-  // pumps at the back: port, turbo pump, roughing line
-  add('pumps', rod([0, -0.8, -R + 0.1], [0, -0.8, -3.3], 0.5, mat(C.steel)));
-  const turbo = cyl(0.65, 0.65, 1.3, mat(C.steel)); turbo.position.set(0, -1.75, -3.6); add('pumps', turbo);
-  const turboTop = cyl(0.66, 0.66, 0.12, mat(C.dark)); turboTop.position.set(0, -1.05, -3.6); add('pumps', turboTop);
-  const fan = new T.Group(); fan.position.set(0, -1.0, -3.6);
-  for (let i = 0; i < 10; i++) { const b = new T.Mesh(new T.BoxGeometry(0.5, 0.03, 0.1), mat(C.ti)); b.position.x = 0.28; b.rotation.x = 0.4; const p = new T.Group(); p.add(b); p.rotation.y = (i / 10) * Math.PI * 2; fan.add(p); }
-  scene.add(fan); (parts.pumps = parts.pumps || []).push(...fan.children.map((g) => g.children[0]));
-  add('pumps', rod([0, -2.4, -3.6], [0, -2.4, -5.2], 0.12, mat(C.steel)));
-  const rough = new T.Mesh(new T.BoxGeometry(0.9, 0.6, 0.7), mat(C.dark)); rough.position.set(0, -2.4, -5.5); add('pumps', rough);
+  // ---------- chamber ----------
+  const R = 2.2, H = 3.0, TOP = H / 2, BOT = -H / 2;
+  const wall = new T.Mesh(new T.CylinderGeometry(R, R, H, 72, 1, true), new T.MeshStandardMaterial({ color: C.glass, transparent: true, opacity: 0.13, depthWrite: false, side: T.DoubleSide, metalness: 0.1, roughness: 0.15 }));
+  scene.add(wall); (parts.chamber = parts.chamber || []).push(wall);
+  const rimTop = new T.LineSegments(new T.EdgesGeometry(new T.CylinderGeometry(R, R, H, 72, 1, true), 20), new T.LineBasicMaterial({ color: C.ink, transparent: true, opacity: 0.25 }));
+  scene.add(rimTop); outlines.push(rimTop); rimTop.userData.part = 'chamber';
+  const lid = cyl(R + 0.18, 0.18, M(C.steel)); lid.position.y = TOP + 0.09; put('chamber', lid);
+  const base = cyl(R + 0.18, 0.18, M(C.steel)); base.position.y = BOT - 0.09; put('chamber', base);
+  // bolt circles
+  for (const y of [TOP + 0.2, BOT - 0.2]) for (let i = 0; i < 24; i++) {
+    const a = (i / 24) * Math.PI * 2;
+    const b = cyl(0.045, 0.06, M(C.steelDark), 10); b.position.set(Math.cos(a) * (R + 0.08), y, Math.sin(a) * (R + 0.08)); put('chamber', b, scene, { outline: false });
+  }
+  // front viewport
+  const vp = tube([0, 0.2, R - 0.02], [0, 0.2, R + 0.3], 0.42, M(C.steel)); put('chamber', vp);
+  const vpGlass = cyl(0.33, 0.03, new T.MeshStandardMaterial({ color: 0x7884b4, transparent: true, opacity: 0.6, metalness: 0.1, roughness: 0.1 }));
+  vpGlass.rotation.x = Math.PI / 2; vpGlass.position.set(0, 0.2, R + 0.32); put('chamber', vpGlass, scene, { outline: false });
+  // legs
+  for (let i = 0; i < 4; i++) { const a = Math.PI / 4 + (i * Math.PI) / 2; const leg = tube([Math.cos(a) * 1.7, BOT - 0.18, Math.sin(a) * 1.7], [Math.cos(a) * 1.7, -2.95, Math.sin(a) * 1.7], 0.07, M(C.steelDark)); put('chamber', leg); }
 
-  // load lock on the right, level with the sample holder
-  add('loadlock', rod([R - 0.05, -0.85, 0], [3.3, -0.85, 0], 0.33, mat(C.steel)));
-  const gate = new T.Mesh(new T.BoxGeometry(0.22, 0.95, 0.95), mat(C.dark)); gate.position.set(2.85, -0.85, 0); add('loadlock', gate);
-  const llBox = new T.Mesh(new T.BoxGeometry(1.1, 1.1, 1.1), mat(C.steel)); llBox.position.set(3.9, -0.85, 0); add('loadlock', llBox);
-  const transfer = rod([4.45, -0.85, 0], [6.1, -0.85, 0], 0.07, mat(C.ti)); add('loadlock', transfer);
-  const handle = cyl(0.16, 0.16, 0.22, mat(C.dark)); handle.rotation.z = Math.PI / 2; handle.position.set(6.2, -0.85, 0); add('loadlock', handle);
+  // ---------- pumps (back) ----------
+  put('pumps', tube([0, -0.75, -R + 0.05], [0, -0.75, -3.05], 0.42, M(C.steel)));
+  const gv = box(0.95, 0.95, 0.24, M(C.dark)); gv.position.set(0, -0.75, -3.15); put('pumps', gv);
+  put('pumps', tube([0, -0.75, -3.27], [0, -0.75, -3.6], 0.42, M(C.steel)));
+  const elbow = cyl(0.42, 0.5, M(C.steel)); elbow.position.set(0, -0.75, -3.85); put('pumps', elbow);
+  const turbo = cyl(0.6, 1.2, M(C.steel)); turbo.position.set(0, -1.65, -3.85); put('pumps', turbo);
+  const turboFlange = cyl(0.7, 0.1, M(C.steelDark)); turboFlange.position.set(0, -1.0, -3.85); put('pumps', turboFlange);
+  const fan = new T.Group(); fan.position.set(0, -1.0, -3.85); scene.add(fan);
+  for (let i = 0; i < 12; i++) { const blade = box(0.46, 0.02, 0.09, M(C.ti)); blade.position.x = 0.27; blade.rotation.x = 0.45; const arm = new T.Group(); arm.rotation.y = (i / 12) * Math.PI * 2; arm.add(blade); fan.add(arm); reg('pumps', blade, { outline: false }); }
+  put('pumps', tube([0, -2.25, -3.85], [0, -2.6, -3.85], 0.1, M(C.steelDark)));
+  put('pumps', tube([0, -2.6, -3.85], [0, -2.6, -5.0], 0.1, M(C.steelDark)));
+  const rough = box(1.0, 0.6, 0.75, M(C.dark)); rough.position.set(0, -2.65, -5.4); put('pumps', rough);
 
-  // argon inlet on the left with a valve
-  add('gas', rod([-R + 0.05, 0.2, 1.2], [-4.4, 0.2, 1.2], 0.07, mat(C.steel)));
-  const valve = new T.Mesh(new T.BoxGeometry(0.4, 0.4, 0.4), mat(C.dark)); valve.position.set(-3.4, 0.2, 1.2); add('gas', valve);
-  const bottle = cyl(0.3, 0.3, 1.4, mat(0x6e7a8a)); bottle.position.set(-4.6, -0.2, 1.2); add('gas', bottle);
+  // ---------- load lock (right) ----------
+  put('loadlock', tube([R - 0.05, -0.9, 0], [2.9, -0.9, 0], 0.3, M(C.steel)));
+  const llGate = box(0.22, 0.85, 0.85, M(C.dark)); llGate.position.set(3.0, -0.9, 0); put('loadlock', llGate);
+  put('loadlock', tube([3.1, -0.9, 0], [3.35, -0.9, 0], 0.3, M(C.steel)));
+  const ll = cyl(0.55, 1.0, M(C.steel)); ll.rotation.z = Math.PI / 2; ll.position.set(3.85, -0.9, 0); put('loadlock', ll);
+  const door = cyl(0.42, 0.06, M(C.steelDark)); door.position.set(3.85, -0.32, 0); put('loadlock', door);
+  put('loadlock', tube([4.35, -0.9, 0], [6.1, -0.9, 0], 0.06, M(C.ti)));
+  const knob = cyl(0.17, 0.24, M(C.dark)); knob.rotation.z = Math.PI / 2; knob.position.set(6.2, -0.9, 0); put('loadlock', knob);
+
+  // ---------- argon inlet (left) ----------
+  put('gas', tube([-R + 0.05, 0.3, 0.9], [-4.0, 0.3, 0.9], 0.06, M(C.steel)));
+  const mfc = box(0.45, 0.32, 0.3, M(C.dark)); mfc.position.set(-3.1, 0.3, 0.9); put('gas', mfc);
+  put('gas', tube([-4.0, 0.3, 0.9], [-4.0, -0.15, 0.9], 0.06, M(C.steel)));
+  const bottle = cyl(0.3, 2.5, M(C.gasBottle, { metalness: 0.2, roughness: 0.6 })); bottle.position.set(-4.0, -1.68, 0.9); put('gas', bottle);
+  const cap = cyl(0.14, 0.28, M(C.steelDark)); cap.position.set(-4.0, -0.3, 0.9); put('gas', cap);
   const gasDots = new T.Group(); scene.add(gasDots);
-  for (let i = 0; i < 10; i++) { const d = new T.Mesh(new T.SphereGeometry(0.05, 8, 8), new T.MeshBasicMaterial({ color: C.plasma })); d.userData.k = i / 10; gasDots.add(d); }
+  for (let i = 0; i < 12; i++) { const d = new T.Mesh(new T.SphereGeometry(0.045, 8, 8), new T.MeshBasicMaterial({ color: C.plasma })); d.userData.k = i / 12; gasDots.add(d); }
 
-  // two magnetron guns through the top flange, tilted toward the center
+  // ---------- magnetron guns + shutters ----------
+  // each gun hangs from a port in the lid, its axis tipped 20° toward the center
   const guns = [];
-  [[-1.0, 1, C.ti], [1.0, -1, C.cu]].forEach(([x, s, tc], i) => {
-    const g = new T.Group(); g.position.set(x, 1.3, 0); g.rotation.z = (s * 20 * Math.PI) / 180;
-    const body = cyl(0.36, 0.36, 0.95, mat(C.dark)); body.position.y = 0.45; g.add(body);
-    const target = cyl(0.4, 0.4, 0.07, mat(tc, { metalness: 0.7, roughness: 0.35 })); target.position.y = -0.04; g.add(target);
-    const magnet = new T.Mesh(new T.TorusGeometry(0.24, 0.035, 8, 32), mat(0x5b5a6b)); magnet.rotation.x = Math.PI / 2; magnet.position.y = 0.06; g.add(magnet);
-    scene.add(g); (parts.guns = parts.guns || []).push(body, target, magnet);
-    // plasma glow in front of the target
-    const pl = new T.Mesh(new T.SphereGeometry(0.42, 24, 16), new T.MeshBasicMaterial({ color: C.plasma, transparent: true, opacity: 0.0, depthWrite: false, blending: T.AdditiveBlending }));
-    pl.scale.set(1, 0.38, 1); pl.position.y = -0.2; g.add(pl); (parts.plasma = parts.plasma || []).push(pl);
-    // shutter on a swing arm
-    const sh = cyl(0.46, 0.46, 0.03, mat(C.steel)); sh.position.set(0, -0.5, 0); g.add(sh);
-    const arm = rod([0, -0.5, 0], [s * 0.9, -0.55, 0], 0.03, mat(C.steel)); g.add(arm);
-    (parts.shutters = parts.shutters || []).push(sh, arm);
-    guns.push({ g, pl, sh, target });
+  [[-0.95, 1, C.ti], [0.95, -1, C.cu]].forEach(([x, s, tc]) => {
+    const g = new T.Group(); g.position.set(x, TOP + 0.09, 0); g.rotation.z = (s * 20 * Math.PI) / 180; scene.add(g);
+    const collar = cyl(0.44, 0.22, M(C.steelDark)); collar.position.y = 0.1; put('guns', collar, g);
+    const body = cyl(0.34, 0.75, M(C.dark)); body.position.y = 0.55; put('guns', body, g);
+    const plug = cyl(0.12, 0.25, M(C.steelDark)); plug.position.y = 1.05; put('guns', plug, g);
+    const neck = cyl(0.3, 0.55, M(C.steel)); neck.position.y = -0.27; put('guns', neck, g);
+    const shield = new T.Mesh(new T.CylinderGeometry(0.42, 0.42, 0.12, 48, 1, true), M(C.steelDark, { side: T.DoubleSide })); shield.position.y = -0.58; put('guns', shield, g);
+    const target = cyl(0.36, 0.06, M(tc, { metalness: 0.8, roughness: 0.3 })); target.position.y = -0.58; put('guns', target, g);
+    const pl = new T.Mesh(new T.SphereGeometry(0.4, 28, 18), new T.MeshBasicMaterial({ color: C.plasma, transparent: true, opacity: 0, depthWrite: false, blending: T.AdditiveBlending }));
+    pl.scale.set(1, 0.36, 1); pl.position.y = -0.74; g.add(pl); (parts.plasma = parts.plasma || []).push(pl);
+    // shutter: a post from the lid, an arm, and a paddle that swings away
+    const pivot = new T.Group(); pivot.position.set(s * -0.62, -0.95, 0.12); g.add(pivot);
+    const post = tube([0, 0, 0], [0, 0.95, 0], 0.035, M(C.steel)); pivot.add(post); reg('shutters', post);
+    const arm = tube([0, 0, 0], [s * 0.62, 0, -0.12], 0.03, M(C.steel)); pivot.add(arm); reg('shutters', arm);
+    const paddle = cyl(0.42, 0.025, M(C.steel)); paddle.position.set(s * 0.62, 0, -0.12); pivot.add(paddle); reg('shutters', paddle);
+    guns.push({ g, pl, pivot, target, s });
   });
 
-  // sample holder: plate, wafer, heater coil, shaft, motor
-  const plate = cyl(0.95, 0.95, 0.12, mat(C.steel)); plate.position.y = -0.95; add('holder', plate);
-  const wafer = cyl(0.72, 0.72, 0.03, mat(C.wafer, { metalness: 0.5, roughness: 0.25 })); wafer.position.y = -0.875; add('holder', wafer);
-  const heater = new T.Mesh(new T.TorusGeometry(0.55, 0.05, 10, 40), new T.MeshStandardMaterial({ color: C.heater, emissive: C.heater, emissiveIntensity: 0.4 }));
-  heater.rotation.x = Math.PI / 2; heater.position.y = -1.08; add('holder', heater);
-  add('holder', rod([0, -1.05, 0], [0, -2.15, 0], 0.08, mat(C.steel)));
-  const motor = cyl(0.3, 0.3, 0.45, mat(C.dark)); motor.position.y = -2.15; add('holder', motor);
+  // ---------- sample holder, heater, sample ----------
+  const plate = cyl(0.85, 0.1, M(C.steel)); plate.position.y = -0.95; put('holder', plate);
+  const sample = box(0.55, 0.05, 0.55, M(C.mgo, { metalness: 0.05, roughness: 0.15, transparent: true, opacity: 0.92 })); sample.position.y = -0.875; put('holder', sample);
+  for (const [cx, cz] of [[0.36, 0], [-0.36, 0], [0, 0.36], [0, -0.36]]) { const clip = box(cx ? 0.14 : 0.3, 0.03, cx ? 0.3 : 0.14, M(C.steelDark)); clip.position.set(cx * 1.05, -0.86, cz * 1.05); put('holder', clip); }
+  const heater = new T.Mesh(new T.TorusGeometry(0.55, 0.045, 10, 48), new T.MeshStandardMaterial({ color: C.heater, emissive: C.heater, emissiveIntensity: 0.35 }));
+  heater.rotation.x = Math.PI / 2; heater.position.y = -1.06; put('holder', heater);
+  put('holder', tube([0, -1.0, 0], [0, BOT - 0.18, 0], 0.08, M(C.steel)));
+  const motor = cyl(0.28, 0.42, M(C.dark)); motor.position.y = BOT - 0.4; put('holder', motor);
+  const holderSpin = [plate, sample];
 
-  // quartz crystal thickness monitor beside the sample
-  add('qcm', rod([R - 0.05, -0.55, 0.65], [1.45, -0.55, 0.65], 0.04, mat(C.steel)));
-  const qcm = cyl(0.13, 0.13, 0.18, mat(C.ti, { metalness: 0.7 })); qcm.position.set(1.35, -0.6, 0.65); add('qcm', qcm);
-  const quartz = cyl(0.09, 0.09, 0.02, new T.MeshStandardMaterial({ color: 0xe9e4d4, emissive: 0x000000 })); quartz.position.set(1.35, -0.5, 0.65); add('qcm', quartz);
+  // ---------- quartz crystal thickness monitor ----------
+  put('qcm', tube([1.25, BOT, 0.6], [1.25, -0.72, 0.6], 0.04, M(C.steel)));
+  const qHead = cyl(0.14, 0.16, M(C.ti, { metalness: 0.75 })); qHead.position.set(1.25, -0.64, 0.6); put('qcm', qHead);
+  const quartz = cyl(0.09, 0.02, M(0xece6d2, { metalness: 0.1 })); quartz.position.set(1.25, -0.555, 0.6); put('qcm', quartz, scene, { outline: false });
 
-  // sputtered atoms flying from the active gun to the wafer
+  // ---------- flying atoms ----------
   const atoms = [];
   const atomMat = new T.MeshBasicMaterial({ color: C.ink });
-  for (let i = 0; i < 40; i++) { const a = new T.Mesh(new T.SphereGeometry(0.035, 8, 8), atomMat); a.visible = false; scene.add(a); atoms.push({ m: a, t: -Math.random(), from: new T.Vector3(), to: new T.Vector3() }); }
+  for (let i = 0; i < 46; i++) { const a = new T.Mesh(new T.SphereGeometry(0.032, 8, 8), atomMat); a.visible = false; scene.add(a); atoms.push({ m: a, t: -Math.random(), from: new T.Vector3(), to: new T.Vector3() }); }
 
-  // ---------- highlighting ----------
-  const all = Object.values(parts).flat();
-  all.forEach((m) => { if (m.material && m.material.emissive) m.userData.baseEmissive = m.material.emissive.getHex(); m.userData.baseIntensity = m.material.emissiveIntensity ?? 1; });
+  // ---------- highlighting: tint the part and turn its outlines orange ----------
+  const meshes = Object.entries(parts).flatMap(([, list]) => list);
+  meshes.forEach((m) => { if (m.material && m.material.emissive && m !== heater) { m.material = m.material.clone(); m.userData.e0 = m.material.emissive.getHex(); m.userData.i0 = m.material.emissiveIntensity; } });
   function highlight(name) {
-    all.forEach((m) => {
-      if (!m.material || !m.material.emissive || m.userData.shared) return;
-      const on = name && parts[name] && parts[name].includes(m) && name !== 'plasma';
-      m.material.emissive.setHex(on ? C.accent : m.userData.baseEmissive);
-      m.material.emissiveIntensity = on ? 0.45 : m.userData.baseIntensity;
+    meshes.forEach((m) => {
+      if (!m.material || !m.material.emissive || m === heater) return;
+      const on = name && m.userData.part === name;
+      m.material.emissive.setHex(on ? C.accent : m.userData.e0);
+      m.material.emissiveIntensity = on ? 0.32 : m.userData.i0;
     });
-    wall.material.opacity = name === 'chamber' ? 0.3 : 0.14;
-    wallEdges.material.opacity = name === 'chamber' ? 0.5 : 0.16;
+    outlines.forEach((o) => {
+      const on = name && o.userData.part === name;
+      o.material.color.setHex(on ? C.accent : C.ink);
+      o.material.opacity = on ? 0.9 : 0.22;
+    });
+    wall.material.opacity = name === 'chamber' ? 0.24 : 0.12;
   }
-  // give each mesh its own material so highlighting one part never tints another
-  all.forEach((m) => { if (m.material && m.material.clone && m !== wall && m !== wallEdges) m.material = m.material.clone(); });
-  all.forEach((m) => { if (m.material && m.material.emissive) { m.userData.baseEmissive = m.material.emissive.getHex(); m.userData.baseIntensity = m.material.emissiveIntensity; } });
 
   // ---------- camera ----------
-  let cur = { f: new T.Vector3(...SLIDES[0].cam.f), d: SLIDES[0].cam.d, t: SLIDES[0].cam.t, p: SLIDES[0].cam.p };
-  let from = null, to = null, t0 = 0;
+  let cur = null, from = null, to = null, t0 = 0;
   const DUR = 1100;
   let drag = { t: 0, p: 0 }, dragging = null;
   function placeCamera() {
@@ -194,18 +239,16 @@
     $('#tourTitle').textContent = s.title;
     $('#tourText').textContent = s.text;
     $('#tourPrev').disabled = idx === 0;
-    $('#tourNext').textContent = idx === SLIDES.length - 1 ? 'Go to the simulator' : 'Next';
+    $('#tourNext').textContent = idx === SLIDES.length - 1 ? 'See an example run' : 'Next';
     [...dots.children].forEach((d, k) => d.setAttribute('aria-current', k === idx ? 'step' : 'false'));
     highlight(s.part);
-    from = { f: cur.f.clone(), d: cur.d, t: cur.t, p: cur.p };
-    to = { f: new T.Vector3(...s.cam.f), d: s.cam.d, t: s.cam.t, p: s.cam.p };
+    const target = { f: new T.Vector3(...s.cam.f), d: s.cam.d, t: s.cam.t, p: s.cam.p };
+    if (!cur || reduce) { cur = target; from = null; } else { from = { f: cur.f.clone(), d: cur.d, t: cur.t, p: cur.p }; to = target; t0 = performance.now(); }
     drag = { t: 0, p: 0 };
-    t0 = performance.now();
-    if (reduce) { cur = to; from = null; }
   }
   $('#tourPrev').addEventListener('click', () => go(idx - 1));
   $('#tourNext').addEventListener('click', () => {
-    if (idx === SLIDES.length - 1) document.getElementById('simulator').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
+    if (idx === SLIDES.length - 1) document.getElementById('t-run').scrollIntoView({ behavior: reduce ? 'auto' : 'smooth' });
     else go(idx + 1);
   });
   root.addEventListener('keydown', (e) => {
@@ -233,9 +276,11 @@
   function resize() {
     const w = canvas.clientWidth, h = canvas.clientHeight;
     if (!w || !h) return;
-    renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix();
+    const pr = renderer.getPixelRatio();
+    if (canvas.width !== Math.round(w * pr) || canvas.height !== Math.round(h * pr)) { renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); }
   }
-  const activeGun = 1;
+  const ACTIVE = 1; // gun 2 does the coating in the tour
+  const src = new T.Vector3();
   function frame(now) {
     resize();
     if (from && to) {
@@ -245,29 +290,27 @@
     }
     placeCamera();
     const part = SLIDES[idx].part;
-    const lit = idx >= 6;           // plasma is on from the plasma slide onward
-    const flowing = part === 'run' || part === 'holder' || part === 'qcm';
+    const lit = idx >= 6;
+    const coating = part === 'run' || part === 'holder' || part === 'qcm';
     guns.forEach((g, i) => {
-      g.pl.material.opacity = lit && (i === activeGun || part === 'plasma') ? 0.55 + 0.12 * Math.sin(now / 180 + i) : 0;
-      // gun 2's shutter swings open once coating starts
-      const open = flowing && i === activeGun;
-      g.sh.position.x = open ? 0.75 : 0; g.sh.rotation.z = open ? 0.6 : 0;
+      g.pl.material.opacity = lit && (i === ACTIVE || part === 'plasma') ? 0.55 + 0.12 * Math.sin(now / 180 + i) : 0;
+      const want = coating && i === ACTIVE ? g.s * 1.5 : 0;   // swing the paddle aside
+      g.pivot.rotation.y += (want - g.pivot.rotation.y) * (reduce ? 1 : 0.12);
     });
-    if (!reduce) { fan.rotation.y += 0.25; }
-    wafer.rotation.y += part === 'holder' || part === 'run' ? 0.01 : 0;
-    gasDots.children.forEach((d) => { const k = (d.userData.k + now / 4000) % 1; d.position.set(-3.6 + k * 1.4, 0.2, 1.2); d.visible = part === 'gas' || part === 'run'; });
-    const tgt = guns[activeGun].target, src = new T.Vector3(); tgt.getWorldPosition(src);
+    if (!reduce) fan.rotation.y += 0.3;
+    if (!reduce && (part === 'holder' || part === 'run')) holderSpin.forEach((m) => (m.rotation.y += 0.01));
+    gasDots.children.forEach((d) => { const k = (d.userData.k + now / 4200) % 1; d.position.set(-3.95 + k * 1.75, 0.3, 0.9); d.visible = part === 'gas' || part === 'run'; });
+    guns[ACTIVE].target.getWorldPosition(src);
     atoms.forEach((a) => {
       a.t += 0.012;
-      a.m.visible = flowing && !reduce && a.t >= 0;
-      if (!flowing || reduce || a.t < 0) return;
-      if (a.t >= 1) { a.t = 0; a.from.copy(src).add(new T.Vector3((Math.random() - 0.5) * 0.5, -0.1, (Math.random() - 0.5) * 0.5)); a.to.set((Math.random() - 0.5) * 1.2, -0.86, (Math.random() - 0.5) * 1.2); }
-      a.m.position.copy(a.from).lerp(a.to, a.t);
+      if (a.t >= 1) { a.t = 0; a.from.copy(src).add(new T.Vector3((Math.random() - 0.5) * 0.45, -0.08, (Math.random() - 0.5) * 0.45)); a.to.set((Math.random() - 0.5) * 0.5, -0.85, (Math.random() - 0.5) * 0.5); }
+      a.m.visible = coating && !reduce && a.t >= 0;
+      if (a.m.visible) a.m.position.copy(a.from).lerp(a.to, a.t);
     });
     renderer.render(scene, camera);
     placeLabel();
     requestAnimationFrame(frame);
   }
-  go(0); cur = { ...to }; from = null;
+  go(0);
   requestAnimationFrame(frame);
 })();

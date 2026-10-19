@@ -36,6 +36,49 @@
     Ru: { name: 'Ruthenium', yield: 1.3, Tm: 2607 },
   };
 
+  // Crystal structure and lattice constant (Å) of each metal, for the
+  // "does the film line up with the substrate?" check. Room-temperature values.
+  const LATTICE = {
+    Cu: { type: 'fcc', a: 3.615 }, Al: { type: 'fcc', a: 4.05 },
+    Mo: { type: 'bcc', a: 3.147 }, W: { type: 'bcc', a: 3.165 },
+    Ti: { type: 'hcp', a: 2.951 }, Ru: { type: 'hcp', a: 2.706 },
+  };
+
+  // Substrates. Only MgO(001) is a crystal with a pattern to copy here;
+  // the oxide on silicon and glass are amorphous.
+  const SUBSTRATES = {
+    mgo:   { name: 'MgO(001) crystal', short: 'MgO', crystal: true, a: 4.212 },
+    sio2:  { name: 'Silicon wafer with oxide', short: 'SiO₂/Si', crystal: false },
+    glass: { name: 'Glass slide', short: 'glass', crystal: false },
+  };
+
+  // Lattice match of a metal on MgO(001). A cubic metal lines up "cube on cube"
+  // (fcc) or rotated 45° (bcc), which compares the metal's spacing with
+  // a(MgO) or a(MgO)/√2. Returns the mismatch as a fraction, or null.
+  function mismatch(material, substrate) {
+    const sub = SUBSTRATES[substrate], f = LATTICE[material];
+    if (!sub.crystal || !f) return null;
+    if (f.type === 'fcc') return { m: (f.a - sub.a) / sub.a, rotated: false };
+    if (f.type === 'bcc') return { m: (f.a - sub.a / Math.SQRT2) / (sub.a / Math.SQRT2), rotated: true };
+    return null;
+  }
+
+  // A rough guide to whether the film grows lined up with the substrate
+  // (epitaxial). Needs a crystal substrate, a close spacing match, and a
+  // sample hot enough for atoms to find their places.
+  function epitaxy(material, substrate, th) {
+    const sub = SUBSTRATES[substrate];
+    const name = MATERIALS[material].name;
+    if (!sub.crystal) return { verdict: 'No template', likely: false, text: `${sub.name.replace(' crystal', '')} has no crystal pattern on top, so ${name.toLowerCase()} grains grow pointing in random directions.` };
+    const mm = mismatch(material, substrate);
+    if (!mm) return { verdict: 'Unknown', likely: false, text: `${name} has a hexagonal crystal, and this simple check only handles cubic metals on MgO.` };
+    const pct = `${Math.abs(mm.m * 100).toFixed(1)}%`;
+    const how = mm.rotated ? `${name} turns 45° to match MgO, leaving a ${pct} spacing difference` : `the spacing differs by ${pct}`;
+    if (Math.abs(mm.m) > 0.08) return { verdict: 'Unlikely', likely: false, text: `On MgO, ${how}. That is too large a difference for the film to line up.` };
+    if (th < 0.25) return { verdict: 'Too cold', likely: false, text: `On MgO, ${how}, which is close enough to line up, but the sample is too cold for atoms to move into place.` };
+    return { verdict: 'Likely', likely: true, text: `On MgO, ${how}. The sample is hot enough that the film can grow lined up with the crystal underneath (epitaxial).` };
+  }
+
   const K_B = 1.380649e-23;
   const MTORR_TO_PA = 0.13332;
 
@@ -156,7 +199,7 @@
     };
   }
 
-  const api = { MATERIALS, meanFreePathCm, ballisticFraction, THERMALIZE, rateNmPerMin, homologous, mobilityFor, zone, analyze, atomSource };
+  const api = { MATERIALS, LATTICE, SUBSTRATES, mismatch, epitaxy, meanFreePathCm, ballisticFraction, THERMALIZE, rateNmPerMin, homologous, mobilityFor, zone, analyze, atomSource };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PVD = api;
 })(typeof window !== 'undefined' ? window : globalThis);
