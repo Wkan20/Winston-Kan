@@ -30,6 +30,10 @@ A sputter chamber is pumped down to high vacuum, then filled with a little argon
 
 The sample can be an MgO(001) crystal, a silicon wafer with oxide, or glass. Oxide and glass are amorphous, so there is no pattern to copy. On MgO (a = 4.212 Å) the check compares spacings: fcc metals sit cube on cube, bcc metals turn 45° and match a/√2 = 2.978 Å. Molybdenum (a = 3.147 Å) is 5.7% off after the 45° turn, matching the published Mo[010] ∥ MgO[110] alignment. The verdict is "Likely" when the mismatch is under 8% and T/Tm is at least 0.25; copper on MgO is 14% off, so "Unlikely". This is a rough guide, not a growth model.
 
+## The chamber view
+
+Each atom launches at its real speed for 5 eV (copper ≈ 3.9 km/s) and is shown 60,000× slower, with a clock for real elapsed time. Gaps between argon hits are drawn at random around the mean free path, using the scale bar in the corner. Each hit is an elastic collision with a resting argon atom (random centre-of-mass angle), so heavy atoms barely turn and light ones can bounce back; speed never drops below the gas's thermal speed. Colors: green = no hits, amber = 1–3 hits, red = 4+ hits. A tally shows where recent atoms ended up, and the readout bar shows the predicted split from Poisson statistics.
+
 ## The physics in the model
 
 **Mean free path.** From kinetic theory, the average distance between collisions is

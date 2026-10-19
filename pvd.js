@@ -28,12 +28,12 @@
   // Sputter yield: atoms knocked off per Ar⁺ ion at 600 eV (Angstrom Sciences table).
   // Tm: melting point in kelvin.
   const MATERIALS = {
-    Cu: { name: 'Copper', yield: 2.3, Tm: 1358 },
-    Al: { name: 'Aluminum', yield: 1.2, Tm: 933 },
-    Ti: { name: 'Titanium', yield: 0.6, Tm: 1941 },
-    Mo: { name: 'Molybdenum', yield: 0.9, Tm: 2896 },
-    W:  { name: 'Tungsten', yield: 0.6, Tm: 3695 },
-    Ru: { name: 'Ruthenium', yield: 1.3, Tm: 2607 },
+    Cu: { name: 'Copper', yield: 2.3, Tm: 1358, mass: 63.55 },
+    Al: { name: 'Aluminum', yield: 1.2, Tm: 933, mass: 26.98 },
+    Ti: { name: 'Titanium', yield: 0.6, Tm: 1941, mass: 47.87 },
+    Mo: { name: 'Molybdenum', yield: 0.9, Tm: 2896, mass: 95.95 },
+    W:  { name: 'Tungsten', yield: 0.6, Tm: 3695, mass: 183.84 },
+    Ru: { name: 'Ruthenium', yield: 1.3, Tm: 2607, mass: 101.07 },
   };
 
   // Crystal structure and lattice constant (Å) of each metal, for the
@@ -102,6 +102,21 @@
     for (let k = 1; k < THERMALIZE; k++) { term *= m / k; sum += term; }
     return Math.min(1, sum);
   }
+
+  // Split of atoms by number of gas hits on the way: [no hits, 1–3 hits, 4 or more].
+  // The first two together are the "directional" fraction above.
+  function hitSplit(L_cm, lambda_cm) {
+    const m = L_cm / lambda_cm, p0 = Math.exp(-m);
+    const lt4 = ballisticFraction(L_cm, lambda_cm);
+    return [p0, Math.max(0, lt4 - p0), Math.max(0, 1 - lt4)];
+  }
+
+  // Speeds for the chamber animation, in m/s. Sputtered atoms leave the target
+  // with a few eV (5 eV assumed here); atoms that have lost that energy to the
+  // gas move at the thermal speed of the room-temperature gas, sqrt(8kT/πm).
+  const AMU = 1.66054e-27, EV = 1.602177e-19, AR_MASS = 39.95, LAUNCH_EV = 5;
+  const launchSpeed = (mat) => Math.sqrt((2 * LAUNCH_EV * EV) / (MATERIALS[mat].mass * AMU));
+  const thermalSpeed = (mat, K = 300) => Math.sqrt((8 * K_B * K) / (Math.PI * MATERIALS[mat].mass * AMU));
 
   // Deposition rate estimate in nm/min.
   // Proportional to power and sputter yield, falls off as 1/L² with distance,
@@ -199,7 +214,7 @@
     };
   }
 
-  const api = { MATERIALS, LATTICE, SUBSTRATES, mismatch, epitaxy, meanFreePathCm, ballisticFraction, THERMALIZE, rateNmPerMin, homologous, mobilityFor, zone, analyze, atomSource };
+  const api = { hitSplit, launchSpeed, thermalSpeed, AR_MASS, LAUNCH_EV, MATERIALS, LATTICE, SUBSTRATES, mismatch, epitaxy, meanFreePathCm, ballisticFraction, THERMALIZE, rateNmPerMin, homologous, mobilityFor, zone, analyze, atomSource };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.PVD = api;
 })(typeof window !== 'undefined' ? window : globalThis);

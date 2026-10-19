@@ -23,6 +23,10 @@
   --void: #ecebf5;
   --gun1: #17141f;       /* atoms from gun 1 */
   --gun2: #2a78d6;       /* atoms from gun 2 */
+  --hit0: #1a9a6c;       /* flight: no gas hits, straight */
+  --hit1: #e09a1a;       /* flight: 1–3 gas hits, nudged */
+  --hit4: #d4483b;       /* flight: 4+ gas hits, slowed and wandering */
+  --argon: #b47fd6;      /* argon gas atoms */
   --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
   color-scheme: light;
@@ -68,6 +72,19 @@ canvas { display: block; width: 100%; height: auto; max-width: 100%; }
 .legend i.full { background: var(--ink); }
 .legend i.ring { box-shadow: inset 0 0 0 1.5px var(--ink); }
 .legend i.sq { border-radius: 2px; }
+.legend i.x { width: 10px; height: 10px; border-radius: 50%; box-shadow: inset 0 0 0 2px var(--argon); background: transparent; }
+.timebar { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 2px 12px; font-size: 12px; color: var(--ink-soft); margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--rule); }
+.timebar b { color: var(--ink); font-weight: 600; }
+.tally { display: grid; gap: 4px; margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
+.tally .bar, .split { display: flex; height: 10px; border-radius: 2px; overflow: hidden; background: var(--void); }
+.tally .bar span, .split span { display: block; height: 100%; transition: width .3s ease; }
+.split { margin-top: 6px; height: 8px; }
+.k { font-weight: 700; white-space: nowrap; }
+.k::before { content: ""; display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 5px; vertical-align: 1px; background: currentColor; }
+.k0 { color: #127452; } .k0::before { background: var(--hit0); }
+.k1 { color: #9a6408; } .k1::before { background: var(--hit1); }
+.k4 { color: #b0352a; } .k4::before { background: var(--hit4); }
+.kar { color: #7d4aa6; } .kar::before { background: transparent; box-shadow: inset 0 0 0 2px var(--argon); }
 
 /* readouts */
 .readout { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); margin: 0; }
@@ -121,10 +138,10 @@ button.icon svg { width: 14px; height: 14px; }
 .warn { font-size: 13px; color: #8b1d2c; margin: 8px 0 0; }
 
 /* explainer */
-.explain { border-top: 1px solid var(--rule); padding-block: 30px 40px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 32px; }
-@media (max-width: 1100px) { .explain { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.explain { border-top: 1px solid var(--rule); padding-block: 30px 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 28px 36px; }
+@media (max-width: 1000px) { .explain { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 640px) { .explain { grid-template-columns: 1fr; } }
-.explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; }
+.explain h2 { font: 800 24px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; }
 .explain p { margin: 0 0 10px; color: var(--ink-soft); max-width: 60ch; }
 .explain b { color: var(--ink); }
 .src { font-size: 13px; color: var(--ink-soft); padding-bottom: 36px; max-width: 110ch; }
@@ -294,7 +311,15 @@ button.icon svg { width: 14px; height: 14px; }
           <h2>Inside the machine</h2>
           <p class="sub" id="chamberSub">Side view, not to scale.</p>
           <canvas id="chamber" aria-label="Diagram of the two-gun sputter chamber showing atoms traveling from the active target to the substrate"></canvas>
-          <div class="legend"><span><i class="full"></i>metal atom flying straight to the sample</span><span><i class="ring"></i>metal atom bouncing off the gas</span></div>
+          <div class="legend">
+            <span><i style="background:var(--hit0)"></i>no gas hits: flies straight</span>
+            <span><i style="background:var(--hit1)"></i>1–3 hits: nudged off course</span>
+            <span><i style="background:var(--hit4)"></i>4+ hits: slowed, wanders</span>
+            <span><i class="x"></i>a hit with an argon atom</span>
+            <span><i style="background:var(--argon);opacity:.55"></i>argon gas</span>
+          </div>
+          <div class="tally" aria-live="off"><span id="tallyText">Where atoms end up: watching…</span><div class="bar" id="tallyBar"></div></div>
+          <div class="timebar"><span id="timeSlow">Slow motion</span><span id="timeClock">machine time 0 µs</span></div>
         </div>
         <div class="card">
           <h2>The coating, up close</h2>
@@ -306,7 +331,7 @@ button.icon svg { width: 14px; height: 14px; }
 
       <dl class="readout" aria-live="polite">
         <div><dt>Distance between gas hits</dt><dd id="rL">—</dd></div>
-        <div><dt>Atoms that fly straight</dt><dd id="rB">—</dd></div>
+        <div><dt>Atoms that arrive mostly straight</dt><dd id="rB">—</dd></div>
         <div><dt>Coating speed</dt><dd id="rR" class="two">—</dd></div>
         <div><dt>Time to finish</dt><dd id="rT">—</dd></div>
         <div><dt>Heat compared with melting</dt><dd id="rH" class="two">—</dd></div>
@@ -402,23 +427,37 @@ button.icon svg { width: 14px; height: 14px; }
 
   <section class="explain">
     <div>
-      <h2>Sputtering</h2>
-      <p>The machine is a sealed chamber pumped down to almost no air, with a little argon gas let back in. Electricity turns the argon in front of a metal target into a glowing plasma. Argon ions slam into the target and knock metal atoms loose, and those atoms land on the sample and build up a coating. This machine has two targets, called guns. Each has a shutter, so it can lay one metal on top of another without opening the chamber.</p>
+      <h2>1 · Knocking atoms loose</h2>
+      <p>The chamber is pumped down to almost no air, then a little argon gas is let back in. A voltage on the metal <b>target</b> turns the argon in front of it into a glowing <b>plasma</b>. Argon ions in the plasma slam into the target and knock metal atoms off. That is <b>sputtering</b>.</p>
+      <p>The atoms leave fast: copper at about 4 km/s, faster than a rifle bullet.</p>
     </div>
     <div>
-      <h2>Gas</h2>
-      <p>Metal atoms have to fly through the argon to reach the sample. With less gas they fly straight and fast, and the coating comes out solid. With more gas they bump into argon over and over, slow down, and land from random directions, which leaves gaps.</p>
+      <h2>2 · The trip through the gas</h2>
+      <p>On the way to the sample, a metal atom can run into argon atoms. The average distance it flies between hits is the <b>mean free path</b>, shown as the purple bar in the chamber. Less gas means fewer argon atoms in the way and a longer gap.</p>
+      <p>Compare that gap with the distance to the sample. If the gap is longer, most atoms make it with <span class="k k0">no hits</span>. If it is much shorter, they take many hits.</p>
     </div>
     <div>
-      <h2>Heat</h2>
-      <p>After an atom lands, it can move a little before more atoms bury it. How far depends on how hot the sample is compared with the metal’s melting point. Room temperature is fairly warm for copper, which melts at 1,085 °C, but very cold for tungsten, which melts at 3,422 °C. So the same settings give a solid copper coating and a porous tungsten one.</p>
+      <h2>3 · What one hit does</h2>
+      <p>Each <span class="k kar">hit</span> is like two balls colliding. The metal atom loses some speed and turns. Heavy atoms like tungsten barely turn; light ones like aluminum can bounce right back.</p>
+      <p>A few hits leave an atom <span class="k k1">nudged</span> but still heading roughly the right way. After about four it has lost its launch energy and <span class="k k4">wanders</span> slowly like a gas atom. Many of those end up on the walls.</p>
     </div>
     <div>
-      <h2>Angle</h2>
-      <p>If the sample is tilted far over, atoms arrive at a low angle and every bump shadows the spot behind it, so the coating grows as slanted columns with gaps between them. Spinning the sample while it grows straightens the columns into posts.</p>
+      <h2>4 · Slow motion</h2>
+      <p>The real trip takes a few <b>millionths of a second</b>, so the chamber view is slowed about 60,000 times. The clock under it shows how much real time has passed.</p>
+      <p>Only a handful of atoms are drawn. A real gun at 0.3 A sends out around 10<sup>18</sup> atoms a second, yet a 40 nm coating still takes minutes: it needs about 3 × 10<sup>17</sup> copper atoms on every square centimeter, and most atoms land on the chamber walls instead of the sample.</p>
+    </div>
+    <div>
+      <h2>5 · Heat after landing</h2>
+      <p>After an atom lands it can hop around a little before more atoms bury it. How far depends on the sample temperature <b>compared with the metal’s melting point</b>.</p>
+      <p>Room temperature is fairly warm for copper (melts at 1,085 °C) but very cold for tungsten (3,422 °C). Same settings, different results: solid copper, porous tungsten.</p>
+    </div>
+    <div>
+      <h2>6 · Angle and spinning</h2>
+      <p>On a sample tilted far over, atoms come in at a low angle and every bump <b>shadows</b> the spot behind it, so the coating grows as slanted columns with gaps between them.</p>
+      <p>Spinning the sample changes the direction atoms come from, and the columns grow straight up instead. This only works with little gas; with lots of gas atoms arrive from every direction anyway.</p>
     </div>
   </section>
-  <p class="src"><b>For the curious:</b> the distance between gas hits comes from kinetic theory (λ = kT/√2πd²p, d ≈ 0.35 nm). An atom counts as flying straight if it hits argon fewer than 4 times. Guns sit 20° off the sample’s axis. Sputter yields at 600 eV Ar⁺ are from Angstrom Sciences. Coating types follow Thornton’s structure zone model (1974) with approximate boundaries. Coating speeds are rough estimates for a small lab gun, and the close-up is a 2D slice, so treat the numbers as trends.</p>
+  <p class="src"><b>For the curious:</b> the mean free path is from kinetic theory (λ = kT/√2πd²p, d ≈ 0.35 nm). In the chamber view, gaps between hits are drawn at random from that average, and each hit is an elastic collision with a resting argon atom (angle chosen at random in the centre-of-mass frame), which sets how much the atom slows and turns. Atoms launch with 5 eV and stop slowing at the gas’s thermal speed. The readout’s “mostly straight” share counts atoms with fewer than 4 hits. Guns sit 20° off the sample’s axis. Coating types follow Thornton’s structure zone model (1974) with approximate boundaries. Coating speeds are rough estimates for a small lab gun, and the close-up is a 2D slice, so treat the numbers as trends.</p>
 <section class="refs" aria-labelledby="t-refs">
   <h2 id="t-refs">Sources</h2>
   <ol>
@@ -433,10 +472,10 @@ button.icon svg { width: 14px; height: 14px; }
 </section>
 </main>
 
-<script src="glad.js?v=3"></script>
-<script src="pvd.js?v=3"></script>
+<script src="glad.js?v=4"></script>
+<script src="pvd.js?v=4"></script>
 <script src="vendor/three.min.js"></script>
-<script src="tour.js?v=3"></script>
+<script src="tour.js?v=4"></script>
 <script>
 (function () {
   const $ = (id) => document.getElementById(id);
@@ -620,7 +659,8 @@ button.icon svg { width: 14px; height: 14px; }
     const a = A[used[0]];
     const per = (f) => used.map((g) => `${state.guns[g].material} ${f(g)}`).join(' · ');
     $('rL').innerHTML = `${a.lambda < 1 ? a.lambda.toFixed(2) : a.lambda.toFixed(1)} cm<small>how far a metal atom flies before bumping into argon</small>`;
-    $('rB').innerHTML = `${Math.round(a.fb * 100)}%<small>the rest get knocked around by the gas on the way</small>`;
+    const sp = PVD.hitSplit(state.distance, a.lambda);
+    $('rB').innerHTML = `${Math.round(a.fb * 100)}%<small>arrive with fewer than 4 gas hits</small><span class="split" aria-hidden="true"><span style="width:${sp[0] * 100}%;background:var(--hit0)"></span><span style="width:${sp[1] * 100}%;background:var(--hit1)"></span><span style="width:${sp[2] * 100}%;background:var(--hit4)"></span></span><small><span class="k k0">${Math.round(sp[0] * 100)}%</span> · <span class="k k1">${Math.round(sp[1] * 100)}%</span> · <span class="k k4">${Math.round(sp[2] * 100)}%</span></small>`;
     $('rR').innerHTML = `${per((g) => rateFmt(A[g].rate))}<small>nanometers of coating per minute (estimate)</small>`;
     const total = state.recipe.reduce((s, l) => s + l.nm / A[l.gun].rate, 0);
     const nmTotal = state.recipe.reduce((s, l) => s + l.nm, 0);
@@ -640,7 +680,7 @@ button.icon svg { width: 14px; height: 14px; }
     $('rE').innerHTML = `${ep.verdict}<small>for the first layer, ${M[bottom].name.toLowerCase()}, on ${PVD.SUBSTRATES[state.substrate].short} (rough guide)</small>`;
     const active = state.recipe[Math.min(layerNow, state.recipe.length - 1)];
     $('filmSub').textContent = `A slice through the coating, 90 nm wide (about a thousandth of a hair). ${done ? 'Finished.' : `Growing layer ${layerNow + 1} of ${state.recipe.length}: ${name(active.gun).toLowerCase()}.`}`;
-    $('chamberSub').textContent = `Each dot is a metal atom knocked off a target. Not to scale. ${done ? 'Both guns are off.' : `Gun ${active.gun + 1} (${name(active.gun).toLowerCase()}) is on.`}`;
+    $('chamberSub').textContent = `Each dot is one metal atom knocked off a target, colored by how many argon atoms it has hit. Only a few atoms are shown. ${done ? 'Both guns are off.' : `Gun ${active.gun + 1} (${name(active.gun).toLowerCase()}) is on.`}`;
     $('filmLegend').innerHTML = used.map((g) => `<span><i class="sq" style="background:var(--gun${g + 1})"></i>${M[g].name} from gun ${g + 1}</span>`).join('') + '<span><i class="sq" style="background:var(--void);box-shadow:inset 0 0 0 1px var(--rule)"></i>empty gaps</span>';
     story(A, M, used);
   }
@@ -648,9 +688,12 @@ button.icon svg { width: 14px; height: 14px; }
     const p = [], a = A[used[0]];
     const hits = Math.max(1, Math.round(state.distance / a.lambda));
     const gas = `The chamber holds a little argon gas: ${pFmt(state.pressure)} mTorr, ${airFrac(state.pressure)}.`;
-    if (a.fb > 0.6) p.push(`${gas} That is so little gas that most metal atoms (${Math.round(a.fb * 100)}%) fly straight to the sample and hit it hard, which packs the coating tight.`);
-    else if (a.fb > 0.1) p.push(`${gas} On the way to the sample, a metal atom bumps into argon about ${hits} times, so only ${Math.round(a.fb * 100)}% fly straight. The rest arrive slower and from random directions.`);
-    else p.push(`${gas} Metal atoms bump into argon about ${hits} times on the way, so almost none fly straight. They drift in slowly from every direction, and that leaves gaps in the coating.`);
+    const sp = PVD.hitSplit(state.distance, a.lambda);
+    const lam = `On average a metal atom flies <b>${a.lambda < 1 ? a.lambda.toFixed(2) : a.lambda.toFixed(1)} cm</b> between argon hits, and the sample is ${state.distance} cm away.`;
+    const mix = `<span class="k k0">${Math.round(sp[0] * 100)}% no hits</span>, <span class="k k1">${Math.round(sp[1] * 100)}% nudged</span>, <span class="k k4">${Math.round(sp[2] * 100)}% slowed</span>.`;
+    if (a.fb > 0.6) p.push(`${gas} ${lam} So most metal atoms reach the sample still fast and on course (${mix}) and hit it hard, which packs the coating tight.`);
+    else if (a.fb > 0.1) p.push(`${gas} ${lam} That is about ${hits} hits on the way (${mix}). Each hit steals some speed and turns the atom, so many arrive slower and from random directions.`);
+    else p.push(`${gas} ${lam} That is about ${hits} hits on the way (${mix}). Almost every atom loses its speed and drifts in slowly from every direction, which leaves gaps in the coating.`);
     used.forEach((g) => {
       const th = A[g].th, m = M[g];
       const base = `${m.name} melts at ${(m.Tm - 273).toLocaleString('en-US')} °C.`;
@@ -702,16 +745,113 @@ button.icon svg { width: 14px; height: 14px; }
     return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
   }
   const activeGun = () => (done ? -1 : state.recipe[Math.min(layerNow, state.recipe.length - 1)].gun);
+  // Each atom flies at a real speed, slowed down by SLOW so you can watch it.
+  // Hits with argon are elastic collisions with a resting argon atom: a heavy
+  // metal atom barely turns, a light one can bounce right back.
+  const SLOW = 60000;
+  let clock = 0, tally = [];
+  const HITCOL = (n) => css(n === 0 ? '--hit0' : n < 4 ? '--hit1' : '--hit4');
   function spawn(G, g, A) {
-    const gun = G.guns[g];
+    const gun = G.guns[g], mat = state.guns[g].material;
     const along = (Math.random() * 2 - 1) * gun.half * 0.8;
     const x0 = gun.x + Math.cos(gun.ang) * along + Math.sin(gun.ang) * 8;
     const y0 = gun.y - Math.sin(gun.ang) * along + Math.cos(gun.ang) * 8;
-    const tx = G.sub.x + (Math.random() * 2 - 1) * G.sub.half, ty = G.sub.y;
+    const tx = G.sub.x + (Math.random() * 2 - 1) * G.sub.half * 1.3, ty = G.sub.y;
     let dx = tx - x0, dy = ty - y0; const L = Math.hypot(dx, dy); dx /= L; dy /= L;
     const pxPerCm = Math.hypot(G.sub.x - gun.x, G.sub.y - gun.y) / state.distance;
-    const ballistic = Math.random() < A.fb;
-    parts.push({ x: x0, y: y0, dx, dy, ballistic, hit: false, trail: [[x0, y0]], travel: 0, free: -Math.log(Math.random()) * A.lambda * pxPerCm, life: 0, lamPx: A.lambda * pxPerCm });
+    const toPx = (mps) => (mps * 100 / SLOW) * pxPerCm;   // m/s in the machine -> px/s on screen
+    const v = toPx(PVD.launchSpeed(mat));
+    parts.push({ x: x0, y: y0, vx: dx * v, vy: dy * v, vth: toPx(PVD.thermalSpeed(mat)), mr: PVD.AR_MASS / PVD.MATERIALS[mat].mass,
+      hits: 0, trail: [[x0, y0, 0]], free: -Math.log(Math.random()) * A.lambda * pxPerCm, lamPx: A.lambda * pxPerCm, age: 0, end: null, endAge: 0 });
+  }
+  function collide(p) {
+    // elastic hit: centre-of-mass velocity plus the metal atom's CM velocity turned by χ
+    const m = p.mr, Vx = p.vx / (1 + m), Vy = p.vy / (1 + m);
+    const ux = p.vx - Vx, uy = p.vy - Vy;
+    const chi = Math.acos(2 * Math.random() - 1) * (Math.random() < 0.5 ? -1 : 1);
+    const c = Math.cos(chi), s2 = Math.sin(chi);
+    p.vx = Vx + ux * c - uy * s2; p.vy = Vy + ux * s2 + uy * c;
+    const sp = Math.hypot(p.vx, p.vy);
+    if (sp < p.vth) { const ang = Math.random() * Math.PI * 2; p.vx = Math.cos(ang) * p.vth; p.vy = Math.sin(ang) * p.vth; }
+    p.hits++; p.trail.push([p.x, p.y, p.age]); if (p.trail.length > 40) p.trail.shift();
+  }
+  function stepParts(G, dt) {
+    const a = state.tilt * Math.PI / 180, ca = Math.cos(a), sa = Math.sin(a);
+    for (const p of parts) {
+      p.age += dt;
+      if (p.end) { p.endAge += dt; continue; }
+      let left = dt;
+      while (left > 0 && !p.end) {
+        const sp = Math.hypot(p.vx, p.vy);
+        const h = Math.min(left, 2 / Math.max(sp, 1));       // move at most 2 px per sub-step
+        const dist = sp * h;
+        if (dist >= p.free) {                                  // reaches the next argon atom
+          const f = p.free / sp; p.x += p.vx * f; p.y += p.vy * f; left -= f;
+          collide(p); p.free = -Math.log(Math.random()) * p.lamPx; continue;
+        }
+        p.x += p.vx * h; p.y += p.vy * h; p.free -= dist; left -= h;
+        const rx = p.x - G.sub.x, ry = p.y - G.sub.y;
+        const lx = rx * ca - ry * sa, ly = rx * sa + ry * ca;
+        if (ly >= -2 && ly < 6 && Math.abs(lx) < G.sub.half) p.end = 'sample';
+        else if (p.x < G.box.x + 3 || p.x > G.box.x + G.box.w - 3 || p.y < G.box.y + 3 || p.y > G.box.y + G.box.h - 3) p.end = 'wall';
+      }
+      if (!p.end && p.age > 7) p.end = 'drift';                // still wandering: stop drawing it
+      if (p.end) { tally.push(p.end === 'sample' ? Math.min(p.hits, 4) : p.end); if (tally.length > 80) tally.shift(); }
+    }
+    parts = parts.filter((p) => !(p.end && p.endAge > 0.8));
+  }
+  function drawParts(ctx) {
+    const argon = css('--argon');
+    for (const p of parts) {
+      const col = HITCOL(p.hits);
+      const fade = p.end ? Math.max(0, 1 - p.endAge / 0.8) : 1;
+      // path so far, in the atom's current color
+      if (p.trail.length > 1 || p.hits) {
+        ctx.globalAlpha = 0.32 * fade; ctx.strokeStyle = col; ctx.lineWidth = 1.2; ctx.beginPath();
+        p.trail.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.lineTo(p.x, p.y); ctx.stroke();
+      }
+      // argon hit markers fade over a second
+      for (let i = 1; i < p.trail.length; i++) {
+        const [x, y, t0] = p.trail[i], k = 1 - (p.age - t0) / 1.0;
+        if (k <= 0) continue;
+        ctx.globalAlpha = k * fade; ctx.strokeStyle = argon; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(x, y, 3 + (1 - k) * 5, 0, 6.29); ctx.stroke();
+      }
+      ctx.globalAlpha = fade * (p.end === 'wall' || p.end === 'drift' ? 0.4 : 1);
+      ctx.fillStyle = p.end === 'wall' ? css('--ink-faint') : col;
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3.2, 0, 6.29); ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+  }
+  function drawRulers(ctx, G) {
+    // a 1 cm scale and the average gap between argon hits, both at the machine's scale
+    const g = G.guns[Math.max(0, activeGun())];
+    const pxPerCm = Math.hypot(G.sub.x - g.x, G.sub.y - g.y) / state.distance;
+    const A = PVD.analyze(gunState(Math.max(0, activeGun())));
+    const x0 = G.box.x + 12, y0 = G.box.y + G.box.h - 30, maxW = G.box.w * 0.42;
+    const lamPx = A.lambda * pxPerCm;
+    ctx.font = '11px "Schibsted Grotesk", Arial, sans-serif'; ctx.textAlign = 'left';
+    ctx.strokeStyle = css('--ink'); ctx.lineWidth = 2; ctx.fillStyle = css('--ink-soft');
+    ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + pxPerCm, y0); ctx.moveTo(x0, y0 - 4); ctx.lineTo(x0, y0 + 4); ctx.moveTo(x0 + pxPerCm, y0 - 4); ctx.lineTo(x0 + pxPerCm, y0 + 4); ctx.stroke();
+    ctx.fillText('1 cm', x0 + pxPerCm + 6, y0 + 4);
+    ctx.strokeStyle = css('--argon'); ctx.lineWidth = 3;
+    const w = Math.min(lamPx, maxW);
+    ctx.beginPath(); ctx.moveTo(x0, y0 + 16); ctx.lineTo(x0 + w, y0 + 16); ctx.stroke();
+    if (lamPx > maxW) { ctx.beginPath(); ctx.moveTo(x0 + w - 6, y0 + 11); ctx.lineTo(x0 + w, y0 + 16); ctx.lineTo(x0 + w - 6, y0 + 21); ctx.stroke(); }
+    ctx.fillText(`average gap between argon hits: ${A.lambda < 1 ? A.lambda.toFixed(2) : A.lambda.toFixed(1)} cm`, x0 + w + 6, y0 + 20);
+  }
+  function updateTally() {
+    if (!tally.length) return;
+    const n = tally.length, c = (k) => tally.filter((x) => x === k).length;
+    const segs = [[c(0), '--hit0'], [c(1) + c(2) + c(3), '--hit1'], [c(4), '--hit4'], [c('wall') + c('drift'), '--ink-faint']];
+    $('tallyBar').innerHTML = segs.map(([v, col]) => `<span style="width:${(v / n) * 100}%;background:var(${col})"></span>`).join('');
+    const pct = (v) => Math.round((v / n) * 100) + '%';
+    $('tallyText').innerHTML = `Last ${n} atoms: <span class="k k0">${pct(segs[0][0])}</span> landed with no hits, <span class="k k1">${pct(segs[1][0])}</span> after 1–3, <span class="k k4">${pct(segs[2][0])}</span> after 4+; ${pct(segs[3][0])} went to the walls or were still drifting.`;
+  }
+  function updateClock(mat) {
+    const v = PVD.launchSpeed(mat), us = (state.distance / 100) / v * 1e6;
+    $('timeSlow').innerHTML = `Slowed down <b>${SLOW.toLocaleString('en-US')}×</b>: a ${PVD.MATERIALS[mat].name.toLowerCase()} atom crosses ${state.distance} cm in about <b>${us.toFixed(0)} µs</b> with no hits`;
+    $('timeClock').innerHTML = `machine time <b>${clock < 1e-3 ? (clock * 1e6).toFixed(0) + ' µs' : (clock * 1e3).toFixed(2) + ' ms'}</b>`;
   }
   function drawGun(ctx, gun, g, on) {
     const ink = css('--ink');
@@ -755,7 +895,7 @@ button.icon svg { width: 14px; height: 14px; }
     ctx.strokeStyle = ink; ctx.beginPath(); ctx.moveTo(G.box.x + G.box.w, py - 14); ctx.lineTo(w, py - 14); ctx.moveTo(G.box.x + G.box.w, py + 14); ctx.lineTo(w, py + 14); ctx.stroke();
     ctx.fillStyle = css('--ink-soft'); ctx.textAlign = 'right'; ctx.fillText('vacuum pump', G.box.x + G.box.w - 6, py - 20);
     // argon
-    ctx.fillStyle = 'rgba(23,20,31,.22)';
+    ctx.fillStyle = hexA(css('--argon'), 0.5);
     for (const g of gas) { const gx = G.box.x + 8 + g.x * (G.box.w - 16) + Math.sin(t / 700 + g.p) * 2, gy = G.box.y + 8 + g.y * (G.box.h - 16) + Math.cos(t / 900 + g.p) * 2; ctx.beginPath(); ctx.arc(gx, gy, 1.6, 0, 6.29); ctx.fill(); }
     // guns
     const act = activeGun();
@@ -778,36 +918,8 @@ button.icon svg { width: 14px; height: 14px; }
     const mx = dg.x + (G.sub.x - dg.x) * 0.62 + (dg.x < G.sub.x ? -26 : 26), my = dg.y + (G.sub.y - dg.y) * 0.62;
     ctx.fillText(`${state.distance} cm`, mx, my);
 
-    // sputtered atoms
-    const speed = 2.6;
-    for (const p of parts) {
-      if (p.hit) { p.life++; continue; }
-      for (let s = 0; s < 2; s++) {
-        p.x += p.dx * speed; p.y += p.dy * speed; p.life++;
-        if (!p.ballistic) {
-          p.travel += speed;
-          if (p.travel > p.free) {
-            const ang = Math.random() * Math.PI * 2; p.dx = Math.cos(ang); p.dy = Math.sin(ang);
-            p.travel = 0; p.free = -Math.log(Math.random()) * p.lamPx; p.trail.push([p.x, p.y]);
-          }
-        }
-        const a = state.tilt * Math.PI / 180, rx = p.x - G.sub.x, ry = p.y - G.sub.y;
-        const lx = rx * Math.cos(a) - ry * Math.sin(a), ly = rx * Math.sin(a) + ry * Math.cos(a);
-        if (ly >= -2 && ly < 6 && Math.abs(lx) < G.sub.half) { p.hit = true; p.hitAt = p.life; break; }
-        if (p.x < G.box.x + 3 || p.x > G.box.x + G.box.w - 3 || p.y < G.box.y + 3 || p.y > G.box.y + G.box.h - 3) { p.hit = true; p.hitAt = p.life; break; }
-      }
-    }
-    parts = parts.filter((p) => p.life < 400 && !(p.hit && p.life > (p.hitAt || 0) + 30));
-    for (const p of parts) {
-      ctx.globalAlpha = p.hit ? 0.35 : 1;
-      if (!p.ballistic) {
-        ctx.strokeStyle = 'rgba(23,20,31,.25)'; ctx.lineWidth = 1; ctx.beginPath();
-        p.trail.slice(-6).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.lineTo(p.x, p.y); ctx.stroke();
-      }
-      ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 6.29);
-      if (p.ballistic) { ctx.fillStyle = ink; ctx.fill(); } else { ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.stroke(); }
-    }
-    ctx.globalAlpha = 1;
+    drawRulers(ctx, G);
+    drawParts(ctx);
     return G;
   }
 
@@ -887,16 +999,23 @@ button.icon svg { width: 14px; height: 14px; }
   });
 
   // ---------- loop ----------
-  let emitAcc = 0, tick = 0, finalized = false;
+  let emitAcc = 0, tick = 0, finalized = false, last = 0, lastKey = '';
   function frame(t) {
+    const dt = last ? Math.min(0.05, (t - last) / 1000) : 0; last = t;
     const G = drawChamber(t);
     const g = activeGun();
+    const key = `${state.pressure}|${state.distance}|${state.tilt}|${g >= 0 ? state.guns[g].material : ''}`;
+    if (key !== lastKey) { tally = []; parts = []; lastKey = key; }
     if (g >= 0) {
       const A = PVD.analyze(gunState(g));
-      emitAcc += Math.min(3, 0.15 + A.rate / 12);
-      while (emitAcc >= 1) { spawn(G, g, A); emitAcc -= 1; }
+      // a steady stream: about 5 atoms a second at 0.3 A, more with more current
+      emitAcc += dt * 5 * Math.sqrt(state.guns[g].amps / 0.3);
+      while (emitAcc >= 1 && parts.length < 220) { spawn(G, g, A); emitAcc -= 1; }
+      clock += dt / SLOW;
     }
-    if (!done) { grow(perFrame); paint(); finalized = false; if (done || ++tick % 8 === 0) updateNumbers(); }
+    stepParts(G, dt);
+    if (++tick % 15 === 0) { updateTally(); updateClock(state.guns[Math.max(0, g)].material); }
+    if (!done) { grow(perFrame); paint(); finalized = false; if (done || tick % 8 === 0) updateNumbers(); }
     else if (!finalized) { updateNumbers(); finalized = true; }
     requestAnimationFrame(frame);
   }
