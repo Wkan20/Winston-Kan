@@ -189,6 +189,11 @@ button.icon svg { width: 14px; height: 14px; }
 .dots .dot[aria-current="step"] { background: var(--ink); }
 .sectionhead { font: 800 30px/1 var(--font-display); text-transform: uppercase; margin: 22px 0 0; }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.refs { border-top: 1px solid var(--rule); margin-top: 28px; padding-top: 18px; padding-bottom: 40px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); max-width: 110ch; }
+.refs h2 { font: 700 15px var(--font-body); color: var(--ink); margin: 0 0 6px; text-transform: none; letter-spacing: 0; }
+.refs ol { margin: 0 0 12px; padding-left: 1.3em; }
+.refs li { margin: 0 0 3px; }
+.refs .disclaimer { margin: 0; }
 </style>
 </head>
 <body>
@@ -414,6 +419,18 @@ button.icon svg { width: 14px; height: 14px; }
     </div>
   </section>
   <p class="src"><b>For the curious:</b> the distance between gas hits comes from kinetic theory (λ = kT/√2πd²p, d ≈ 0.35 nm). An atom counts as flying straight if it hits argon fewer than 4 times. Guns sit 20° off the sample’s axis. Sputter yields at 600 eV Ar⁺ are from Angstrom Sciences. Coating types follow Thornton’s structure zone model (1974) with approximate boundaries. Coating speeds are rough estimates for a small lab gun, and the close-up is a 2D slice, so treat the numbers as trends.</p>
+<section class="refs" aria-labelledby="t-refs">
+  <h2 id="t-refs">Sources</h2>
+  <ol>
+    <li>Example run and Mo-on-MgO alignment: Gall group, <a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC10052566/" target="_blank" rel="noopener">“Anisotropic Resistivity Size Effect in Epitaxial Mo(001) and Mo(011) Layers”</a> (open access, PubMed Central).</li>
+    <li>Structure zones: J. A. Thornton, J. Vac. Sci. Technol. 11, 666 (1974). Zone boundaries here are approximate.</li>
+    <li>Sputter yields at 600 eV Ar⁺: Angstrom Sciences sputter yield table.</li>
+    <li>Distance between gas hits: hard-sphere kinetic theory, λ = kT / (√2·π·d²·p), with an assumed d ≈ 0.35 nm.</li>
+    <li>Lattice constants (Cu, Al, Mo, W, Ti, Ru, MgO) and melting points: standard room-temperature handbook values.</li>
+    <li>Gun voltage (≈350 V), coating speeds, and the growth rules are my own simplified estimates, not measurements from any system.</li>
+  </ol>
+  <p class="disclaimer"><b>Disclaimer.</b> This is a learning project by an undergraduate student, built with help from Claude, an AI assistant. The models are simplified versions of published ones, so the numbers show trends, not predictions for any real machine or process; please don’t use them for lab or fab decisions. Any mistakes are mine, and corrections are welcome. Not affiliated with or endorsed by RPI or any lab, company, or author cited here.</p>
+</section>
 </main>
 
 <script src="glad.js?v=3"></script>

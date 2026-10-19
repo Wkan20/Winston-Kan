@@ -95,6 +95,11 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 .explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; text-wrap: balance; }
 .explain p { margin: 0; color: var(--muted); max-width: 60ch; }
 .explain code { font-family: var(--font-body); font-weight: 600; color: var(--fg); }
+.refs { border-top: 1px solid var(--rule); margin-top: 28px; padding-top: 18px; padding-bottom: 40px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); max-width: 110ch; }
+.refs h2 { font: 700 15px var(--font-body); color: var(--ink); margin: 0 0 6px; text-transform: none; letter-spacing: 0; }
+.refs ol { margin: 0 0 12px; padding-left: 1.3em; }
+.refs li { margin: 0 0 3px; }
+.refs .disclaimer { margin: 0; }
 </style>
 </head>
 <body>
@@ -172,6 +177,14 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   </section>
 </div>
 
+<section class="refs pad" aria-labelledby="t-refs">
+  <h2 id="t-refs">Sources</h2>
+  <ol>
+    <li>Lattice constants (Si, sapphire, GaN, ZnO, MgO, SrTiO₃): standard room-temperature handbook values.</li>
+    <li>Plane spacing and angles: textbook crystallography using the reciprocal lattice (d = 1/|G|). Checked against published values for sapphire R- and A-planes and silicon (111).</li>
+  </ol>
+  <p class="disclaimer"><b>Disclaimer.</b> This is a learning project by an undergraduate student, built with help from Claude, an AI assistant. The models are simplified versions of published ones, so the numbers show trends, not predictions for any real machine or process; please don’t use them for lab or fab decisions. Any mistakes are mine, and corrections are welcome. Not affiliated with or endorsed by RPI or any lab, company, or author cited here.</p>
+</section>
 <script src="lattice.js"></script>
 <script>
 (function () {

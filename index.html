@@ -119,6 +119,13 @@ h2 { font: 800 clamp(38px, 5.4vw, 64px)/.92 var(--font-display); text-transform:
 .close p { max-width: 58ch; margin: 0 0 12px; }
 footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-block: 22px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 13px; color: var(--ink-soft); background: var(--film-600); border-top: 1px solid var(--rule); }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+.refs { border-top: 1px solid var(--rule); margin-top: 28px; padding-top: 18px; padding-bottom: 40px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); max-width: 110ch; }
+.refs h2 { font: 700 15px var(--font-body); color: var(--ink); margin: 0 0 6px; text-transform: none; letter-spacing: 0; }
+.refs ol { margin: 0 0 12px; padding-left: 1.3em; }
+.refs li { margin: 0 0 3px; }
+.refs .disclaimer { margin: 0; }
+.refs-site { max-width: none; margin: 0; padding-left: var(--gutter); padding-right: var(--gutter-r); background: var(--film-600); }
+.refs-site > * { max-width: 110ch; }
 </style>
 </head>
 <body>
@@ -242,9 +249,17 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
   </section>
 </main>
 
-<footer>
+<section class="refs refs-site" aria-labelledby="t-refs">
+  <h2 id="t-refs">Sources</h2>
+  <ol>
+    <li>Oxide colors: thin-film interference of SiO₂ on silicon, computed in <code>filmcolor.js</code>. SiO₂ index from I. H. Malitson, J. Opt. Soc. Am. 55, 1205 (1965); silicon optical constants approximated from M. A. Green, Sol. Energy Mater. Sol. Cells 92, 1305 (2008); CIE 1931 color matching functions under daylight.</li>
+    <li>Color names: Rogue Valley Microdevices thermal oxide color chart.</li>
+    <li>Each project page lists its own sources at the bottom.</li>
+  </ol>
+  <p class="disclaimer"><b>Disclaimer.</b> This is a learning project by an undergraduate student, built with help from Claude, an AI assistant. The models are simplified versions of published ones, so the numbers show trends, not predictions for any real machine or process; please don’t use them for lab or fab decisions. Any mistakes are mine, and corrections are welcome. Not affiliated with or endorsed by RPI or any lab, company, or author cited here.</p>
+</section>
+<footer style="border-top:0">
   <span>Every color on this page is calculated from the oxide thickness printed beside it: thin-film interference of SiO₂ on silicon, seen in daylight.</span>
-  <span>Color names: Rogue Valley Microdevices thermal oxide chart.</span>
 </footer>
 
 <script src="filmcolor.js"></script>

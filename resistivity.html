@@ -119,6 +119,11 @@ select { font: 500 14px var(--font-body); color: var(--ink); background: var(--p
 .explain p { margin: 0 0 10px; color: var(--ink-soft); max-width: 60ch; }
 .explain b { color: var(--ink); }
 .src { font-size: 13px; color: var(--ink-soft); padding-bottom: 36px; }
+.refs { border-top: 1px solid var(--rule); margin-top: 28px; padding-top: 18px; padding-bottom: 40px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); max-width: 110ch; }
+.refs h2 { font: 700 15px var(--font-body); color: var(--ink); margin: 0 0 6px; text-transform: none; letter-spacing: 0; }
+.refs ol { margin: 0 0 12px; padding-left: 1.3em; }
+.refs li { margin: 0 0 3px; }
+.refs .disclaimer { margin: 0; }
 </style>
 </head>
 <body>
@@ -216,7 +221,16 @@ select { font: 500 14px var(--font-body); color: var(--ink); background: var(--p
       <p>Sputtered films are made of many small crystals. Each boundary between them reflects some electrons (<b>R</b>), and thinner films have smaller grains and more boundaries. This is the Mayadas–Shatzkes model. The tool adds both effects to ρ₀, a common simplification.</p>
     </div>
   </section>
-  <p class="src">Bulk ρ₀ and λ: D. Gall, “Electron mean free path in elemental metals,” J. Appl. Phys. 119, 085101 (2016). Co and Ru are hexagonal; λ is the average of the two crystal directions. Mo λ is derived from that paper’s ρ₀λ = 5.99 × 10⁻¹⁶ Ω·m². Results are model trends, not predictions for a specific process.</p>
+<section class="refs" aria-labelledby="t-refs">
+  <h2 id="t-refs">Sources</h2>
+  <ol>
+    <li>Bulk resistivity ρ₀ and electron mean free path λ: D. Gall, “Electron mean free path in elemental metals,” J. Appl. Phys. 119, 085101 (2016). Co and Ru use the average of the two crystal directions; Mo λ comes from that paper’s ρ₀λ = 5.99 × 10⁻¹⁶ Ω·m².</li>
+    <li>Surface scattering: K. Fuchs, Proc. Cambridge Philos. Soc. 34, 100 (1938); E. H. Sondheimer, Adv. Phys. 1, 1 (1952).</li>
+    <li>Grain-boundary scattering: A. F. Mayadas and M. Shatzkes, Phys. Rev. B 1, 1382 (1970).</li>
+    <li>Adding the two effects together is a common simplification, not the full combined model.</li>
+  </ol>
+  <p class="disclaimer"><b>Disclaimer.</b> This is a learning project by an undergraduate student, built with help from Claude, an AI assistant. The models are simplified versions of published ones, so the numbers show trends, not predictions for any real machine or process; please don’t use them for lab or fab decisions. Any mistakes are mine, and corrections are welcome. Not affiliated with or endorsed by RPI or any lab, company, or author cited here.</p>
+</section>
 </main>
 
 <script src="resistivity.js"></script>
