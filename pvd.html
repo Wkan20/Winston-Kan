@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sputter Chamber Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face { font-family: "Big Shoulders Display"; src: url("fonts/big-shoulders-display.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/schibsted-grotesk.woff") format("woff"); font-weight: 400 900; font-display: swap; }
+/* Layout: the oxide-chart world in a working register. A 310 nm band opens the page; the chamber and the growing
+   film sit side by side on bare-silicon ground, with grouped controls in a right column. */
+:root {
+  --si: #d8d8ed;
+  --film-310: #54a2ee;
+  --film-465: #c585e8;   /* plasma glow: the red-violet of a 465 nm film, close to an argon plasma */
+  --film-225: #dec193;   /* heater glow */
+  --plot: #fbfbfd;
+  --ink: #17141f;
+  --ink-soft: rgba(23, 20, 31, .84);
+  --ink-faint: rgba(23, 20, 31, .38);
+  --rule: rgba(23, 20, 31, .2);
+  --void: #ecebf5;
+  --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scrollbar-color: var(--ink-faint) var(--si); }
+body { margin: 0; background: var(--si); color: var(--ink); font: 16px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--ink); color: var(--si); }
+a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 2px; }
+.pad { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* opening band */
+.band { background: var(--film-310); border-bottom: 1px solid var(--rule); padding-block: 18px 34px; }
+.band .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.band .row b { font-weight: 700; }
+.band .row span { color: var(--ink-soft); }
+.band .head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 32px; align-items: end; margin-top: 26px; }
+@media (max-width: 700px) { .band .head { grid-template-columns: 1fr; } }
+h1 { font: 900 clamp(46px, 8vw, 96px)/.86 var(--font-display); text-transform: uppercase; margin: 0 0 14px; text-wrap: balance; }
+.lede { margin: 0; max-width: 64ch; font-size: 17px; }
+.swatch { text-align: right; }
+.swatch .nm { font: 800 44px/.9 var(--font-display); }
+.swatch .nm small { font-size: 20px; }
+.swatch div { font-size: 13px; color: var(--ink-soft); }
+@media (max-width: 700px) { .swatch { text-align: left; } }
+
+/* tool */
+.tool { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 20px; padding-block: 24px; align-items: start; }
+@media (max-width: 1000px) { .tool { grid-template-columns: 1fr; } }
+.views { display: grid; gap: 16px; min-width: 0; }
+.pair { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 760px) { .pair { grid-template-columns: 1fr; } }
+.card { background: var(--plot); border: 1px solid var(--rule); border-radius: 4px; padding: 12px 14px; min-width: 0; }
+.card h2 { font: 700 15px var(--font-body); margin: 0 0 2px; }
+.card .sub { font-size: 13px; color: var(--ink-soft); margin: 0 0 8px; }
+canvas { display: block; width: 100%; height: auto; max-width: 100%; }
+#chamber { aspect-ratio: 4 / 3.4; }
+#film { aspect-ratio: 360 / 240; image-rendering: pixelated; border-radius: 2px; }
+.legend { display: flex; flex-wrap: wrap; gap: 4px 16px; font-size: 12px; color: var(--ink-soft); margin-top: 8px; }
+.legend i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 0; }
+.legend i.full { background: var(--ink); }
+.legend i.ring { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.legend i.sq { border-radius: 2px; }
+
+/* readouts */
+.readout { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; border-top: 1px solid var(--rule); }
+@media (max-width: 760px) { .readout { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.readout div { padding: 10px 12px 10px 0; border-bottom: 1px solid var(--rule); min-width: 0; }
+.readout dt { font-size: 12px; color: var(--ink-soft); }
+.readout dd { margin: 2px 0 0; font: 800 26px/1.05 var(--font-display); }
+.readout dd small { display: block; font: 400 12px/1.35 var(--font-body); color: var(--ink-soft); margin-top: 3px; }
+.story { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px; }
+@media (max-width: 760px) { .story { grid-template-columns: 1fr; } }
+.story p { margin: 0 0 10px; max-width: 64ch; }
+#zonemap { aspect-ratio: 4 / 3; }
+
+/* controls */
+.panel { display: grid; gap: 14px; min-width: 0; }
+.group { background: var(--plot); border: 1px solid var(--rule); border-radius: 4px; padding: 12px 14px 14px; }
+.group h3 { font: 700 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; margin: 0 0 10px; }
+.ctl + .ctl { margin-top: 14px; }
+.ctl .h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ctl label { font-size: 14px; font-weight: 600; }
+.ctl output { font-size: 14px; }
+.ctl .ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-soft); }
+input[type=range] { width: 100%; accent-color: var(--ink); }
+select { width: 100%; font: 500 14px var(--font-body); color: var(--ink); background: var(--plot); border: 1px solid var(--rule); border-radius: 3px; padding: 7px 8px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 500 13px var(--font-body); color: var(--ink); background: transparent; cursor: pointer; border: 1px solid var(--rule); border-radius: 3px; padding: 5px 9px; }
+.chip:hover { border-color: var(--ink); }
+.chip[aria-pressed="true"] { border-color: var(--ink); background: var(--ink); color: var(--plot); }
+button.act { font: 700 14px var(--font-body); color: var(--plot); background: var(--ink); border: 0; border-radius: 3px; padding: 10px 14px; cursor: pointer; width: 100%; }
+button.act:disabled { opacity: .55; cursor: default; }
+
+/* explainer */
+.explain { border-top: 1px solid var(--rule); padding-block: 30px 40px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 36px; }
+@media (max-width: 860px) { .explain { grid-template-columns: 1fr; } }
+.explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; }
+.explain p { margin: 0 0 10px; color: var(--ink-soft); max-width: 60ch; }
+.explain b { color: var(--ink); }
+.src { font-size: 13px; color: var(--ink-soft); padding-bottom: 36px; max-width: 110ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header class="band pad">
+  <div class="row"><a href="index.html"><b>Winston Kan</b></a><span>Materials Science &amp; Engineering, RPI ’29</span></div>
+  <div class="head">
+    <div>
+      <h1>Sputter Chamber Simulator</h1>
+      <p class="lede">Set the knobs on a magnetron sputtering system and watch what they do: inside the chamber, on the way to the substrate, and in the film that grows atom by atom.</p>
+    </div>
+    <div class="swatch"><div class="nm">310<small>nm</small></div><div>Blue · SiO₂ on Si</div></div>
+  </div>
+</header>
+
+<main class="pad">
+  <section class="tool" aria-label="Simulator">
+    <div class="views">
+      <div class="pair">
+        <div class="card">
+          <h2>Inside the chamber</h2>
+          <p class="sub" id="chamberSub">Side view. Not to scale.</p>
+          <canvas id="chamber" aria-label="Diagram of the sputter chamber showing atoms traveling from the target to the substrate"></canvas>
+          <div class="legend"><span><i class="full"></i>reaches the substrate in a straight line</span><span><i class="ring"></i>scattered by argon on the way</span></div>
+        </div>
+        <div class="card">
+          <h2>The film, atom by atom</h2>
+          <p class="sub" id="filmSub">Cross-section, 90 nm wide.</p>
+          <canvas id="film" aria-label="Cross-section of the growing film"></canvas>
+          <div class="legend"><span><i class="sq" style="background:var(--ink)"></i><i class="sq" style="background:#5a5470"></i>atoms, banded by when they landed</span><span><i class="sq" style="background:var(--void);box-shadow:inset 0 0 0 1px var(--rule)"></i>empty space</span></div>
+        </div>
+      </div>
+
+      <dl class="readout" aria-live="polite">
+        <div><dt>Mean free path</dt><dd id="rL">—</dd></div>
+        <div><dt>Arrive in a straight line</dt><dd id="rB">—</dd></div>
+        <div><dt>Deposition rate</dt><dd id="rR">—</dd></div>
+        <div><dt>Time for this film</dt><dd id="rT">—</dd></div>
+        <div><dt>Substrate T ÷ melting point</dt><dd id="rH">—</dd></div>
+        <div><dt>Structure zone</dt><dd id="rZ">—</dd></div>
+        <div><dt>Film density</dt><dd id="rD">—</dd></div>
+        <div><dt>Column tilt</dt><dd id="rC">—</dd></div>
+      </dl>
+
+      <div class="story">
+        <div class="card">
+          <h2>What’s happening</h2>
+          <div id="story"></div>
+        </div>
+        <div class="card">
+          <h2>Structure zone map</h2>
+          <p class="sub">Thornton’s model: film structure vs. temperature and pressure. The dot is your settings.</p>
+          <canvas id="zonemap" aria-label="Structure zone map with the current settings marked"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="group">
+        <h3>Presets</h3>
+        <div class="chips" id="presets"></div>
+      </div>
+      <div class="group">
+        <h3>Gas and vacuum</h3>
+        <div class="ctl">
+          <div class="h"><label for="pressure">Argon pressure</label><output id="pressureOut"></output></div>
+          <input type="range" id="pressure" min="0" max="100" step="1">
+          <div class="ends"><span>1 mTorr</span><span>30 mTorr</span></div>
+        </div>
+      </div>
+      <div class="group">
+        <h3>Target</h3>
+        <div class="ctl">
+          <div class="h"><label for="material">Material</label></div>
+          <select id="material"></select>
+        </div>
+        <div class="ctl">
+          <div class="h"><label for="power">Power</label><output id="powerOut"></output></div>
+          <input type="range" id="power" min="25" max="300" step="25">
+        </div>
+      </div>
+      <div class="group">
+        <h3>Geometry</h3>
+        <div class="ctl">
+          <div class="h"><label for="distance">Target-to-substrate distance</label><output id="distanceOut"></output></div>
+          <input type="range" id="distance" min="5" max="20" step="1">
+        </div>
+        <div class="ctl">
+          <div class="h"><label for="tilt">Substrate tilt</label><output id="tiltOut"></output></div>
+          <input type="range" id="tilt" min="0" max="88" step="1">
+          <div class="ends"><span>facing the target</span><span>glancing (GLAD)</span></div>
+        </div>
+        <div class="ctl">
+          <div class="h"><label for="rotation">Substrate rotation</label></div>
+          <select id="rotation"><option value="none">None</option><option value="continuous">Continuous</option><option value="flip">Flip back and forth</option></select>
+        </div>
+        <div class="ctl" id="periodRow">
+          <div class="h"><label for="period">Film grown per turn</label><output id="periodOut"></output></div>
+          <input type="range" id="period" min="1" max="20" step="1">
+        </div>
+      </div>
+      <div class="group">
+        <h3>Substrate</h3>
+        <div class="ctl">
+          <div class="h"><label for="temp">Temperature</label><output id="tempOut"></output></div>
+          <input type="range" id="temp" min="25" max="800" step="25">
+        </div>
+      </div>
+      <div class="group">
+        <h3>Run</h3>
+        <div class="ctl">
+          <div class="h"><label for="thick">Film thickness</label><output id="thickOut"></output></div>
+          <input type="range" id="thick" min="10" max="50" step="5">
+        </div>
+        <div class="ctl"><button type="button" class="act" id="regrow">Grow again</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="explain">
+    <div>
+      <h2>Pressure</h2>
+      <p>Argon is what the plasma is made of, but it also sits in the way. The <b>mean free path</b> is how far a sputtered atom flies before hitting an argon atom. At low pressure it is several centimeters, so atoms arrive straight from the target with energy to spare. At high pressure they bounce around, slow down, and arrive from random directions, which makes porous films and wipes out GLAD shadowing.</p>
+    </div>
+    <div>
+      <h2>Temperature</h2>
+      <p>What matters is the substrate temperature as a fraction of the metal’s melting point. Copper at room temperature is already at 0.22, so its atoms can shuffle into place. Tungsten at room temperature is at 0.08, so they stick where they land. That is why the same settings give a dense copper film and a porous tungsten one.</p>
+    </div>
+    <div>
+      <h2>Angle and rotation</h2>
+      <p>Tilting the substrate far over makes every bump shadow the area behind it, and the film grows as tilted columns. Rotating the substrate during growth averages the direction out, so the columns straighten into posts. This only works when atoms arrive in straight lines, meaning low pressure.</p>
+    </div>
+  </section>
+  <p class="src">Model notes: mean free path from kinetic theory (λ = kT/√2πd²p, d ≈ 0.35 nm). An atom counts as arriving in a straight line if it has fewer than 4 collisions on the way. Sputter yields at 600 eV Ar⁺ from Angstrom Sciences. Structure zones after Thornton (1974), with approximate boundaries. Deposition rates are rough estimates for a small lab gun, and the film is a 2D slice, so treat every number as a trend, not a recipe.</p>
+</main>
+
+<script src="glad.js"></script>
+<script src="pvd.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const DEFAULTS = { material: 'Cu', power: 100, pressure: 3, distance: 10, tilt: 0, rotation: 'none', period: 4, tempC: 25, thick: 40 };
+  const PRESETS = [
+    { label: 'Default', s: {} },
+    { label: 'Dense film', s: { pressure: 1, tempC: 250 } },
+    { label: 'Porous film', s: { material: 'W', pressure: 20 } },
+    { label: 'GLAD columns', s: { pressure: 1, tilt: 85 } },
+    { label: 'GLAD posts', s: { pressure: 1, tilt: 85, rotation: 'continuous', period: 3 } },
+    { label: 'GLAD at high pressure', s: { pressure: 15, tilt: 85 } },
+  ];
+  const state = { ...DEFAULTS };
+  const FW = 360, FH = 240, NM_PER_ATOM = 0.25;
+
+  // pressure slider is logarithmic: 1 → 30 mTorr
+  const toP = (v) => Math.pow(10, (v / 100) * Math.log10(30));
+  const fromP = (p) => Math.round((Math.log10(p) / Math.log10(30)) * 100);
+
+  // ---------- controls ----------
+  for (const [k, m] of Object.entries(PVD.MATERIALS)) {
+    const o = document.createElement('option'); o.value = k; o.textContent = `${m.name} (melts at ${m.Tm - 273} °C)`; $('material').appendChild(o);
+  }
+  function syncControls() {
+    $('pressure').value = fromP(state.pressure); $('pressureOut').textContent = state.pressure.toFixed(state.pressure < 10 ? 1 : 0) + ' mTorr';
+    $('material').value = state.material;
+    $('power').value = state.power; $('powerOut').textContent = state.power + ' W';
+    $('distance').value = state.distance; $('distanceOut').textContent = state.distance + ' cm';
+    $('tilt').value = state.tilt; $('tiltOut').textContent = state.tilt + '°';
+    $('rotation').value = state.rotation; $('periodRow').hidden = state.rotation === 'none';
+    $('period').value = state.period; $('periodOut').textContent = (state.period * NM_PER_ATOM).toFixed(2).replace(/0$/, '') + ' nm';
+    $('temp').value = state.tempC; $('tempOut').textContent = state.tempC + ' °C';
+    $('thick').value = state.thick; $('thickOut').textContent = state.thick + ' nm';
+    [...$('presets').children].forEach((b, i) => {
+      const want = { ...DEFAULTS, ...PRESETS[i].s };
+      const same = Object.keys(want).every((k) => k === 'thick' || (typeof want[k] === 'number' ? Math.abs(want[k] - state[k]) < 0.05 * Math.max(1, Math.abs(want[k])) : want[k] === state[k]));
+      b.setAttribute('aria-pressed', String(same));
+    });
+  }
+  PRESETS.forEach((p) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = p.label;
+    b.addEventListener('click', () => { Object.assign(state, DEFAULTS, p.s); syncControls(); restart(); });
+    $('presets').appendChild(b);
+  });
+  let debounce = 0;
+  const on = (id, key, parse) => $(id).addEventListener('input', (e) => {
+    state[key] = parse(e.target.value); syncControls(); updateNumbers(); drawZoneMap();
+    clearTimeout(debounce); debounce = setTimeout(restart, 180);
+  });
+  on('pressure', 'pressure', (v) => toP(+v));
+  on('power', 'power', Number);
+  on('distance', 'distance', Number);
+  on('tilt', 'tilt', Number);
+  on('period', 'period', Number);
+  on('temp', 'tempC', Number);
+  on('thick', 'thick', Number);
+  $('material').addEventListener('change', (e) => { state.material = e.target.value; syncControls(); restart(); });
+  $('rotation').addEventListener('change', (e) => { state.rotation = e.target.value; syncControls(); restart(); });
+  $('regrow').addEventListener('click', () => { seed++; restart(); });
+
+  // ---------- film growth ----------
+  let sim = null, seed = 11, drawn = 0, analysis = null, done = false;
+  const fcv = $('film'), fctx = fcv.getContext('2d');
+  fcv.width = FW; fcv.height = FH;
+  const img = fctx.createImageData(FW, FH);
+  const VOID = [236, 235, 245], A1 = [23, 20, 31], A2 = [90, 84, 112];
+  function setPx(idx, c) { const x = idx % FW, y = (idx / FW) | 0, p = ((FH - 1 - y) * FW + x) * 4; img.data[p] = c[0]; img.data[p + 1] = c[1]; img.data[p + 2] = c[2]; img.data[p + 3] = 255; }
+  function restart() {
+    analysis = PVD.analyze(state);
+    sim = Glad.createSim({ width: FW, height: FH, seed, source: PVD.atomSource(state, analysis) });
+    drawn = 0; done = false;
+    for (let i = 0; i < FW * FH; i++) setPx(i, VOID);
+    if (reduce) { grow(1e9); }
+    paint(); updateNumbers(); drawZoneMap();
+  }
+  const targetRows = () => state.thick / NM_PER_ATOM;
+  function grow(n) {
+    let left = n;
+    while (left > 0 && !sim.full && sim.thickness() < targetRows()) { sim.step(Math.min(200, left)); left -= 200; }
+    if (sim.full || sim.thickness() >= targetRows()) done = true;
+  }
+  function paint() {
+    for (; drawn < sim.count; drawn++) setPx(sim.order[drawn], Math.floor(drawn / (FW * 8)) % 2 ? A2 : A1);
+    fctx.putImageData(img, 0, 0);
+    fctx.fillStyle = '#3b3650'; fctx.fillRect(0, FH - 2, FW, 2);
+  }
+
+  // ---------- numbers and story ----------
+  const fmtTime = (min) => {
+    if (!isFinite(min)) return '—';
+    const s = Math.round(min * 60);
+    if (s < 90) return `${s} s`;
+    const m = Math.floor(s / 60), r = s % 60;
+    return m < 60 ? `${m} min ${r ? r + ' s' : ''}`.trim() : `${(min / 60).toFixed(1)} h`;
+  };
+  function updateNumbers() {
+    const a = analysis = PVD.analyze(state);
+    const m = PVD.MATERIALS[state.material];
+    $('rL').innerHTML = `${a.lambda < 1 ? a.lambda.toFixed(2) : a.lambda.toFixed(1)} cm<small>between collisions with argon</small>`;
+    $('rB').innerHTML = `${Math.round(a.fb * 100)}%<small>${(state.distance / a.lambda).toFixed(1)} collisions on average over ${state.distance} cm</small>`;
+    $('rR').innerHTML = `${a.rate < 1 ? a.rate.toFixed(2) : a.rate.toFixed(1)} nm/min<small>estimate${state.tilt >= 20 ? ', on the tilted substrate' : ''}</small>`;
+    $('rT').innerHTML = `${fmtTime(a.minutesFor(state.thick))}<small>to grow ${state.thick} nm</small>`;
+    $('rH').innerHTML = `${a.th.toFixed(2)}<small>${state.tempC + 273} K ÷ ${m.Tm} K</small>`;
+    $('rZ').innerHTML = `${a.zone.name}<small>${a.zone.text}</small>`;
+    const d = sim ? sim.density() : NaN;
+    $('rD').innerHTML = `${Number.isFinite(d) ? Math.round(d * 100) + '%' : '—'}<small>${done ? 'of the film is solid' : 'measured as it grows'}</small>`;
+    let tilt = '—', why = 'needs a tilted substrate';
+    if (state.tilt >= 20 && state.rotation === 'none') {
+      if (!done) why = 'measured when growth finishes';
+      else { const t = sim.columnTilt(); if (Number.isFinite(t) && t > 3) { tilt = Math.round(t) + '°'; why = 'leaning toward the target'; } else why = 'no clear columns'; }
+    } else if (state.rotation !== 'none') why = 'rotation removes the lean';
+    $('rC').innerHTML = `${tilt}<small>${why}</small>`;
+    $('filmSub').textContent = `Cross-section, 90 nm wide. ${done ? 'Finished at' : 'Growing to'} ${state.thick} nm.`;
+    $('chamberSub').textContent = `Side view, not to scale. ${state.pressure.toFixed(state.pressure < 10 ? 1 : 0)} mTorr Ar, ${state.power} W, ${m.name.toLowerCase()} target.`;
+    story(a, m);
+  }
+  function story(a, m) {
+    const p = [];
+    const coll = state.distance / a.lambda;
+    if (a.fb > 0.6) p.push(`At ${state.pressure.toFixed(1)} mTorr, a sputtered atom flies about ${a.lambda.toFixed(1)} cm between collisions, so most atoms (${Math.round(a.fb * 100)}%) cross the ${state.distance} cm gap almost in a straight line and arrive with energy to spare.`);
+    else if (a.fb > 0.1) p.push(`At ${state.pressure.toFixed(1)} mTorr, atoms hit argon about ${coll.toFixed(0)} times on the way, so only ${Math.round(a.fb * 100)}% arrive in a straight line. The rest come in slowed down and from random directions.`);
+    else p.push(`At ${state.pressure.toFixed(state.pressure < 10 ? 1 : 0)} mTorr, atoms hit argon about ${coll.toFixed(0)} times on the way. Almost none arrive in a straight line: they drift in slowly from every direction, which leaves gaps in the film.`);
+    const tm = `${m.name} melts at ${m.Tm - 273} °C, so at ${state.tempC} °C the substrate is at ${a.th.toFixed(2)} of its melting point.`;
+    if (a.th < 0.15) p.push(`${tm} Landed atoms can barely move, so they stick where they hit.`);
+    else if (a.th < 0.3) p.push(`${tm} Landed atoms can shuffle a short distance into better spots.`);
+    else p.push(`${tm} Landed atoms move freely and fill in gaps, giving a dense film.`);
+    if (state.tilt >= 60) {
+      p.push(a.fb > 0.5
+        ? `The substrate is tilted ${state.tilt}°, so bumps shadow the area behind them${state.rotation === 'none' ? ' and the film grows as tilted columns.' : state.rotation === 'continuous' ? '; rotating it straightens the columns into posts.' : '; flipping it makes the columns zigzag.'}`
+        : `The substrate is tilted ${state.tilt}°, but at this pressure the gas scrambles the arrival angle, so shadowing is weak. GLAD needs low pressure.`);
+    }
+    p.push(`At ${state.power} W this target deposits about ${a.rate < 1 ? a.rate.toFixed(2) : a.rate.toFixed(1)} nm/min, so ${state.thick} nm takes ${fmtTime(a.minutesFor(state.thick))}.`);
+    $('story').innerHTML = p.map((t) => `<p>${t}</p>`).join('');
+  }
+
+  // ---------- chamber diagram ----------
+  const ccv = $('chamber');
+  let parts = [], gas = [], lastT = 0;
+  function geom(w, h) {
+    const box = { x: w * 0.06, y: h * 0.05, w: w * 0.88, h: h * 0.9 };
+    const tgtY = box.y + h * 0.13;
+    const gap = (h * 0.62) * ((state.distance - 5) / 15) + h * 0.16; // 5 cm → short, 20 cm → long
+    const subY = Math.min(tgtY + gap, box.y + box.h - h * 0.08);
+    return { box, tgt: { x: w / 2, y: tgtY, half: w * 0.17 }, sub: { x: w / 2, y: subY, half: w * 0.15 } };
+  }
+  function seedGas(w, h) {
+    gas = [];
+    const n = Math.round(12 + state.pressure * 9);
+    for (let i = 0; i < n; i++) gas.push({ x: Math.random(), y: Math.random(), p: Math.random() * 6.28 });
+  }
+  function spawn(G) {
+    const a = analysis;
+    const ballistic = Math.random() < a.fb;
+    const x0 = G.tgt.x + (Math.random() * 2 - 1) * G.tgt.half * 0.8, y0 = G.tgt.y + 6;
+    // aim at a point on the substrate
+    const tx = G.sub.x + (Math.random() * 2 - 1) * G.sub.half, ty = G.sub.y;
+    let dx = tx - x0, dy = ty - y0; const L = Math.hypot(dx, dy); dx /= L; dy /= L;
+    const pxPerCm = (G.sub.y - G.tgt.y) / state.distance;
+    parts.push({ x: x0, y: y0, dx, dy, ballistic, hit: false, trail: [[x0, y0]], travel: 0, free: -Math.log(Math.random()) * a.lambda * pxPerCm, life: 0 });
+  }
+  function drawChamber(t) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = ccv.clientWidth, h = ccv.clientHeight;
+    if (ccv.width !== Math.round(w * dpr)) { ccv.width = Math.round(w * dpr); ccv.height = Math.round(h * dpr); seedGas(w, h); }
+    const ctx = ccv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    const G = geom(w, h), ink = css('--ink');
+    ctx.font = '12px "Schibsted Grotesk", Arial, sans-serif';
+    // chamber wall
+    ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.roundRect(G.box.x, G.box.y, G.box.w, G.box.h, 10); ctx.stroke();
+    // gas inlet and pump port
+    ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(0, G.box.y + G.box.h * 0.32); ctx.lineTo(G.box.x, G.box.y + G.box.h * 0.32); ctx.stroke();
+    ctx.fillStyle = css('--ink-soft'); ctx.textAlign = 'left'; ctx.fillText('Ar in', G.box.x + 6, G.box.y + G.box.h * 0.32 + 16);
+    const py = G.box.y + G.box.h * 0.82;
+    ctx.fillStyle = css('--si'); ctx.fillRect(G.box.x + G.box.w - 2, py - 14, 4, 28);
+    ctx.strokeStyle = ink; ctx.beginPath(); ctx.moveTo(G.box.x + G.box.w, py - 14); ctx.lineTo(w, py - 14); ctx.moveTo(G.box.x + G.box.w, py + 14); ctx.lineTo(w, py + 14); ctx.stroke();
+    ctx.fillStyle = css('--ink-soft'); ctx.textAlign = 'right'; ctx.fillText('to pump', G.box.x + G.box.w - 6, py - 20);
+    // argon atoms
+    ctx.fillStyle = 'rgba(23,20,31,.22)';
+    for (const g of gas) { const gx = G.box.x + 8 + g.x * (G.box.w - 16) + Math.sin(t / 700 + g.p) * 2, gy = G.box.y + 8 + g.y * (G.box.h - 16) + Math.cos(t / 900 + g.p) * 2; ctx.beginPath(); ctx.arc(gx, gy, 1.6, 0, 6.29); ctx.fill(); }
+    // magnetron + target
+    ctx.fillStyle = ink; ctx.fillRect(G.tgt.x - G.tgt.half * 0.9, G.box.y, G.tgt.half * 1.8, G.tgt.y - G.box.y - 6);
+    ctx.fillStyle = '#8d8a9c'; ctx.fillRect(G.tgt.x - G.tgt.half, G.tgt.y - 6, G.tgt.half * 2, 6);
+    ctx.fillStyle = css('--plot'); ctx.textAlign = 'center'; ctx.fillText(`${state.material} target`, G.tgt.x, G.box.y + (G.tgt.y - G.box.y) / 2 + 2);
+    // plasma: brighter with power, tighter at low pressure
+    const glow = Math.min(0.85, 0.25 + state.power / 400);
+    const pg = ctx.createRadialGradient(G.tgt.x, G.tgt.y + 10, 2, G.tgt.x, G.tgt.y + 10, G.tgt.half * (0.9 + state.pressure / 40));
+    const pc = css('--film-465');
+    pg.addColorStop(0, hexA(pc, glow)); pg.addColorStop(1, hexA(pc, 0));
+    ctx.fillStyle = pg; ctx.beginPath(); ctx.ellipse(G.tgt.x, G.tgt.y + 12, G.tgt.half * 1.1, 22 + state.pressure * 0.6, 0, 0, 6.29); ctx.fill();
+    // substrate holder (tilted) + heater glow
+    ctx.save(); ctx.translate(G.sub.x, G.sub.y + 4); ctx.rotate(-state.tilt * Math.PI / 180);
+    if (state.tempC > 60) { const hg = ctx.createRadialGradient(0, 10, 2, 0, 10, G.sub.half * 1.2); hg.addColorStop(0, hexA(css('--film-225'), Math.min(0.95, state.tempC / 700))); hg.addColorStop(1, hexA(css('--film-225'), 0)); ctx.fillStyle = hg; ctx.fillRect(-G.sub.half * 1.3, -4, G.sub.half * 2.6, 30); }
+    ctx.fillStyle = '#5b5a6b'; ctx.fillRect(-G.sub.half, 0, G.sub.half * 2, 7);
+    ctx.fillStyle = css('--film-310'); ctx.fillRect(-G.sub.half * 0.8, -3, G.sub.half * 1.6, 3);
+    if (state.rotation !== 'none') { ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.ellipse(0, 18, 14, 5, 0, 0.3, 5.9); ctx.stroke(); }
+    ctx.restore();
+    ctx.strokeStyle = ink; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(G.sub.x, G.sub.y + 12); ctx.lineTo(G.sub.x, G.box.y + G.box.h); ctx.stroke();
+    ctx.fillStyle = css('--ink-soft'); ctx.textAlign = 'left';
+    ctx.fillText(state.tempC > 60 ? `substrate, ${state.tempC} °C` : 'substrate', G.sub.x + G.sub.half + 10, G.sub.y + 6);
+    // distance dimension
+    const dx = G.tgt.x + G.tgt.half + 22;
+    ctx.strokeStyle = 'rgba(23,20,31,.55)'; ctx.lineWidth = 1; ctx.beginPath();
+    ctx.moveTo(dx, G.tgt.y); ctx.lineTo(dx, G.sub.y); ctx.moveTo(dx - 5, G.tgt.y); ctx.lineTo(dx + 5, G.tgt.y); ctx.moveTo(dx - 5, G.sub.y); ctx.lineTo(dx + 5, G.sub.y); ctx.stroke();
+    ctx.textAlign = 'left'; ctx.fillStyle = css('--ink-soft'); ctx.fillText(`${state.distance} cm`, dx + 8, (G.tgt.y + G.sub.y) / 2 + 4);
+
+    // sputtered atoms
+    const pxPerCm = (G.sub.y - G.tgt.y) / state.distance;
+    const lamPx = analysis.lambda * pxPerCm;
+    const speed = 2.6;
+    for (const p of parts) {
+      if (p.hit) { p.life++; continue; }
+      for (let s = 0; s < 2; s++) {
+        p.x += p.dx * speed; p.y += p.dy * speed; p.life++;
+        if (!p.ballistic) {
+          p.travel = (p.travel || 0) + speed;
+          if (p.travel > p.free) { // collision: new random direction
+            const ang = Math.random() * Math.PI * 2; p.dx = Math.cos(ang); p.dy = Math.sin(ang);
+            p.travel = 0; p.free = -Math.log(Math.random()) * lamPx; p.trail.push([p.x, p.y]);
+          }
+        }
+        { // landed on the (tilted) substrate? check in the substrate's own frame
+          const a = state.tilt * Math.PI / 180, rx = p.x - G.sub.x, ry = p.y - G.sub.y;
+          const lx = rx * Math.cos(a) - ry * Math.sin(a), ly = rx * Math.sin(a) + ry * Math.cos(a);
+          if (ly >= -2 && ly < 6 && Math.abs(lx) < G.sub.half) { p.hit = true; p.hitAt = p.life; break; }
+        }
+        if (p.x < G.box.x + 3 || p.x > G.box.x + G.box.w - 3 || p.y < G.tgt.y || p.y > G.box.y + G.box.h - 3) { p.hit = true; p.hitAt = p.life; break; }
+      }
+    }
+    parts = parts.filter((p) => p.life < 400 && !(p.hit && p.life > 30 + (p.hitAt || 0)));
+    for (const p of parts) {
+      ctx.globalAlpha = p.hit ? 0.35 : 1;
+      if (!p.ballistic) {
+        ctx.strokeStyle = 'rgba(23,20,31,.25)'; ctx.lineWidth = 1; ctx.beginPath();
+        p.trail.slice(-6).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.lineTo(p.x, p.y); ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(p.x, p.y, 3, 0, 6.29);
+      if (p.ballistic) { ctx.fillStyle = ink; ctx.fill(); } else { ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.stroke(); }
+    }
+    ctx.globalAlpha = 1;
+    return G;
+  }
+  function hexA(hex, a) {
+    const h = hex.replace('#', ''); const n = parseInt(h.length === 3 ? h.split('').map((c) => c + c).join('') : h, 16);
+    return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
+  }
+  function emit(G, n) {
+    for (let i = 0; i < n; i++) {
+      spawn(G);
+    }
+  }
+
+  // ---------- structure zone map ----------
+  function drawZoneMap() {
+    const cv = $('zonemap'); const dpr = window.devicePixelRatio || 1;
+    const w = cv.clientWidth, h = cv.clientHeight; if (!w) return;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, w, h);
+    const pad = { l: 44, r: 10, t: 8, b: 34 };
+    const X = (th) => pad.l + (th / 0.8) * (w - pad.l - pad.r);
+    const Y = (p) => h - pad.b - (Math.log10(p) / Math.log10(30)) * (h - pad.t - pad.b);
+    const ink = css('--ink'), soft = css('--ink-soft');
+    ctx.font = '11px "Schibsted Grotesk", Arial, sans-serif';
+    // zone fills, light to dark as structure gets denser
+    const fills = ['rgba(23,20,31,.04)', 'rgba(23,20,31,.10)', 'rgba(23,20,31,.17)', 'rgba(23,20,31,.25)'];
+    const ps = []; for (let i = 0; i <= 40; i++) ps.push(Math.pow(30, i / 40));
+    const edge = (k) => ps.map((p) => [X(PVD.zone.bounds(p)[k]), Y(p)]);
+    const region = (left, right, fill) => {
+      ctx.beginPath();
+      left.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+      [...right].reverse().forEach(([x, y]) => ctx.lineTo(x, y));
+      ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+    };
+    const L0 = ps.map((p) => [X(0), Y(p)]), L4 = ps.map((p) => [X(0.8), Y(p)]);
+    region(L0, edge(0), fills[0]); region(edge(0), edge(1), fills[1]); region(edge(1), edge(2), fills[2]); region(edge(2), L4, fills[3]);
+    ctx.strokeStyle = 'rgba(23,20,31,.45)'; ctx.lineWidth = 1;
+    for (let k = 0; k < 3; k++) { ctx.beginPath(); edge(k).forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke(); }
+    ctx.fillStyle = ink; ctx.textAlign = 'center';
+    const mid = Y(5);
+    const b = PVD.zone.bounds(5);
+    [['1', 0, b[0]], ['T', b[0], b[1]], ['2', b[1], b[2]], ['3', b[2], 0.8]].forEach(([n, a0, a1]) => ctx.fillText('Zone ' + n, X((a0 + a1) / 2), Y(22)));
+    // axes
+    ctx.fillStyle = soft;
+    [0, 0.2, 0.4, 0.6, 0.8].forEach((v) => ctx.fillText(v.toFixed(1), X(v), h - pad.b + 14));
+    ctx.fillText('substrate T ÷ melting point', pad.l + (w - pad.l - pad.r) / 2, h - 4);
+    ctx.textAlign = 'right';
+    [1, 3, 10, 30].forEach((p) => ctx.fillText(p, pad.l - 6, Y(p) + 4));
+    ctx.save(); ctx.translate(10, pad.t + (h - pad.t - pad.b) / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = 'center'; ctx.fillText('Ar pressure (mTorr)', 0, 0); ctx.restore();
+    // you are here
+    const th = Math.min(0.8, PVD.homologous(state));
+    ctx.beginPath(); ctx.arc(X(th), Y(state.pressure), 6, 0, 6.29); ctx.fillStyle = ink; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = css('--plot'); ctx.stroke();
+  }
+
+  // ---------- loop ----------
+  let emitAcc = 0, tick = 0;
+  function frame(t) {
+    const G = drawChamber(t);
+    // more atoms on screen at higher deposition rates
+    emitAcc += Math.min(3, 0.15 + analysis.rate / 12);
+    while (emitAcc >= 1) { emit(G, 1); emitAcc -= 1; }
+    if (!done) { grow(450); paint(); if (done || ++tick % 8 === 0) updateNumbers(); }
+    else if (!frame.finalized) { updateNumbers(); frame.finalized = true; }
+    if (!done) frame.finalized = false;
+    requestAnimationFrame(frame);
+  }
+
+  syncControls();
+  restart();
+  window.addEventListener('resize', drawZoneMap);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawZoneMap);
+  if (reduce) {
+    // one still frame with a sample of paths, no animation
+    const G = drawChamber(0); for (let i = 0; i < 40; i++) emit(G, 1);
+    for (let k = 0; k < 120; k++) drawChamber(k * 16);
+    updateNumbers();
+  } else requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

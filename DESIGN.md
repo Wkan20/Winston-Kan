@@ -15,6 +15,8 @@ colors:
   rule: "rgba(23, 20, 31, .22)"
   plot-surface: "#fbfbfd"
   error-ink: "#8b1d2c"
+  film-465-plasma: "#c585e8"
+  film-void: "#ecebf5"
   series-copper: "#2a78d6"
   series-ruthenium: "#eb6834"
   series-cobalt: "#1baf7a"
@@ -129,6 +131,8 @@ All film colors come from `FilmColor.hex(thickness)` and are named by thickness 
 
 ### Data series (tool pages only)
 - **Error Ink** (#8b1d2c): error messages in tool forms only.
+- **Plasma** (#c585e8, the 465 nm red-violet film color): the argon plasma glow in the chamber diagram. **Heater glow** uses the 225 nm gold. Both stay computed film colors.
+- **Film Void** (#ecebf5): empty space in simulated film cross-sections; atoms are drawn in ink and a lighter ink (#5a5470) to band growth layers.
 - **Chart strip gradient:** the 0–600 nm strip uses 121 computed stops (every 5 nm) from `filmcolor.js`. They are data, not tokens, and are never reused as UI colors.
 - Copper #2a78d6, Ruthenium #eb6834, Cobalt #1baf7a, Molybdenum #eda100, Tungsten #e87ba4, Aluminum #008300. A validated categorical order; each metal keeps its color whatever is toggled. Three sit under 3:1 on the plot surface, so every chart ships with a value table.
 

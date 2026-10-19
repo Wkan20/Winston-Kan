@@ -41,6 +41,8 @@
    *   rotation       'none' | 'continuous' | 'flip'
    *   period         monolayers of material per full rotation (continuous) or per flip
    *   seed           random seed
+   *   source         optional function(rand, monolayers) → { slope, hops } per atom,
+   *                  overriding angle / mobility / rotation (used by pvd.js)
    */
   function createSim(opts = {}) {
     const W = opts.width || 320;
@@ -96,8 +98,7 @@
     }
 
     // 1. FLY and 2. STICK
-    function fly() {
-      const slope = horizontalSlope();
+    function fly(slope = horizontalSlope()) {
       const len = Math.hypot(1, slope);
       const stepX = (slope / len) * 0.5; // half-cell steps so we never skip a cell
       const stepY = (-1 / len) * 0.5;
@@ -115,31 +116,45 @@
       return [cx, cy];
     }
 
-    // 3. HOP: move toward spots with more neighbors (more bonds = lower energy)
-    function hop(x, y) {
-      for (let k = 0; k < mobility; k++) {
-        const here = y === 0 ? neighbors(x, y) + 1 : neighbors(x, y);
-        let best = null, bestN = -1, ties = 0;
-        for (const [dx, dy] of [[-1, 0], [1, 0], [0, -1], [0, 1]]) {
-          const nx = wrap(x + dx), ny = y + dy;
-          if (ny < 0 || ny >= H || filled(nx, ny)) continue;
-          let n = neighbors(nx, ny, x, y);
-          if (ny === 0) n += 1; // resting on the substrate counts as a bond
-          if (n === 0) continue; // can't float away
-          if (n > bestN) { best = [nx, ny]; bestN = n; ties = 1; }
-          else if (n === bestN && rand() < 1 / ++ties) best = [nx, ny];
+    // 3. HOP: surface diffusion. Within `hops` steps along the surface (empty
+    // spots that touch the film), the atom settles in the reachable spot with
+    // the most neighbors, since more bonds means lower energy. Ties go to the
+    // lower spot, then at random.
+    function hop(x, y, hops = mobility) {
+      if (hops <= 0) return [x, y];
+      const key = (cx, cy) => cy * W + cx;
+      const seen = new Set([key(x, y)]);
+      let frontier = [[x, y]];
+      let best = [x, y], bestScore = neighbors(x, y) * 1000 - y + rand();
+      for (let step = 0; step < hops && frontier.length; step++) {
+        const next = [];
+        for (const [cx, cy] of frontier) {
+          for (let dx = -1; dx <= 1; dx++) for (let dy = -1; dy <= 1; dy++) {
+            if (!dx && !dy) continue;
+            const nx = wrap(cx + dx), ny = cy + dy;
+            if (ny < 0 || ny >= H || filled(nx, ny)) continue;
+            const k = key(nx, ny);
+            if (seen.has(k)) continue;
+            seen.add(k);
+            const n = neighbors(nx, ny);
+            if (n === 0) continue; // must stay on the surface
+            next.push([nx, ny]);
+            const score = n * 1000 - ny + rand();
+            if (score > bestScore) { bestScore = score; best = [nx, ny]; }
+          }
         }
-        if (!best || bestN < here) break; // nowhere better to go
-        if (bestN === here && rand() < 0.5) break; // sideways moves happen half the time
-        [x, y] = best;
+        frontier = next;
       }
-      return [x, y];
+      return best;
     }
 
     function addAtom() {
       if (full) return false;
-      let [x, y] = fly();
-      if (mobility > 0) [x, y] = hop(x, y);
+      // opts.source lets a caller (pvd.js) choose each atom's direction and hops
+      const a = opts.source ? opts.source(rand, count / W) : null;
+      let [x, y] = a ? fly(a.slope) : fly();
+      const hops = a ? a.hops : mobility;
+      if (hops > 0) [x, y] = hop(x, y, hops);
       if (filled(x, y)) return true; // rare collision after a hop; skip this atom
       place(x, y);
       return true;
