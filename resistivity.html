@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Thin-Wire Resistivity</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face { font-family: "Big Shoulders Display"; src: url("fonts/big-shoulders-display.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/schibsted-grotesk.woff") format("woff"); font-weight: 400 900; font-display: swap; }
+/* Layout: the portfolio's oxide-chart world in a working register. A 426 nm band opens the page; the tool sits on
+   bare-silicon ground with a near-white plotting surface. Series colors are a validated categorical set. */
+:root {
+  --si: #d8d8ed;
+  --film-426: #eca2d0;
+  --plot: #fbfbfd;
+  --ink: #17141f;
+  --ink-soft: rgba(23, 20, 31, .84);
+  --ink-faint: rgba(23, 20, 31, .38);
+  --rule: rgba(23, 20, 31, .2);
+  --grid: rgba(23, 20, 31, .09);
+  /* series: one fixed color per metal (validated categorical order) */
+  --Cu: #2a78d6; --Ru: #eb6834; --Co: #1baf7a; --Mo: #eda100; --W: #e87ba4; --Al: #008300;
+  --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scrollbar-color: var(--ink-faint) var(--si); }
+body { margin: 0; background: var(--si); color: var(--ink); font: 16px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--ink); color: var(--si); }
+a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 2px; border-radius: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+.pad { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* opening band */
+.band { background: var(--film-426); border-bottom: 1px solid var(--rule); padding-block: 18px 34px; }
+.band .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.band .row b { font-weight: 700; }
+.band .row span { color: var(--ink-soft); }
+.band .head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 32px; align-items: end; margin-top: 26px; }
+@media (max-width: 700px) { .band .head { grid-template-columns: 1fr; } }
+h1 { font: 900 clamp(46px, 8vw, 96px)/.86 var(--font-display); text-transform: uppercase; margin: 0 0 14px; text-wrap: balance; }
+.lede { margin: 0; max-width: 62ch; font-size: 17px; }
+.swatch { text-align: right; }
+.swatch .nm { font: 800 44px/.9 var(--font-display); }
+.swatch .nm small { font-size: 20px; }
+.swatch div { font-size: 13px; color: var(--ink-soft); }
+@media (max-width: 700px) { .swatch { text-align: left; } }
+
+/* tool */
+.tool { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: 20px; padding-block: 24px; align-items: start; }
+@media (max-width: 960px) { .tool { grid-template-columns: 1fr; } }
+.plotcard { background: var(--plot); border: 1px solid var(--rule); border-radius: 4px; padding: 14px 14px 10px; min-width: 0; }
+.plothead { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 6px; }
+.plothead h2 { font: 700 15px var(--font-body); margin: 0; }
+.plothead span { font-size: 13px; color: var(--ink-soft); }
+.chartwrap { position: relative; }
+#chart { display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; max-width: 100%; touch-action: pan-y; cursor: crosshair; }
+.tip { position: absolute; pointer-events: none; background: var(--ink); color: var(--plot); border-radius: 4px; padding: 8px 10px; font-size: 13px; line-height: 1.45; min-width: 150px; box-shadow: 0 6px 18px rgba(23,20,31,.25); }
+.tip b { display: block; margin-bottom: 2px; }
+.tip i { display: inline-block; width: 9px; height: 9px; border-radius: 2px; margin-right: 6px; vertical-align: 0; }
+.tip .r { float: right; margin-left: 14px; }
+
+.panel { display: grid; gap: 14px; min-width: 0; }
+.group { background: var(--plot); border: 1px solid var(--rule); border-radius: 4px; padding: 12px 14px 14px; }
+.group h3 { font: 700 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; margin: 0 0 10px; }
+.metals { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.metal { display: flex; align-items: center; gap: 8px; border: 1px solid var(--rule); border-radius: 3px; padding: 6px 8px; font-size: 14px; cursor: pointer; user-select: none; }
+.metal input { position: absolute; opacity: 0; pointer-events: none; }
+.metal .sw { width: 14px; height: 3px; border-radius: 2px; flex: none; }
+.metal:has(input:checked) { border-color: var(--ink); font-weight: 600; }
+.metal:has(input:not(:checked)) { color: var(--ink-soft); font-weight: 400; }
+.metal:has(input:not(:checked)) .sw { background: transparent !important; box-shadow: inset 0 0 0 1.5px var(--ink-faint); height: 8px; }
+.metal:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 2px; }
+.ctl + .ctl { margin-top: 14px; }
+.ctl .h { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; }
+.ctl label { font-size: 14px; font-weight: 600; }
+.ctl output { font-size: 14px; }
+.ctl .ends { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-soft); }
+.ctl p { margin: 4px 0 0; font-size: 13px; color: var(--ink-soft); }
+input[type=range] { width: 100%; accent-color: var(--ink); }
+button { font: 600 14px var(--font-body); color: var(--plot); background: var(--ink); border: 0; border-radius: 3px; padding: 9px 14px; cursor: pointer; }
+button.quiet { background: transparent; color: var(--ink); border: 1px solid var(--rule); }
+
+/* table + crossover */
+.below { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 20px; padding-bottom: 24px; }
+@media (max-width: 960px) { .below { grid-template-columns: 1fr; } }
+.tablebox { overflow-x: auto; }
+@media (max-width: 600px) { .tablebox th:nth-child(2), .tablebox td:nth-child(2), .tablebox th:nth-child(3), .tablebox td:nth-child(3) { display: none; } }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+caption { text-align: left; font-weight: 700; padding-bottom: 8px; }
+.subhead { font: 700 15px var(--font-body); margin: 0 0 8px; }
+th, td { padding: 8px 10px 8px 0; border-bottom: 1px solid var(--rule); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: left; }
+thead th { font-weight: 600; color: var(--ink-soft); font-size: 13px; }
+td i { display: inline-block; width: 12px; height: 3px; border-radius: 2px; margin-right: 8px; vertical-align: 3px; }
+tr.best td { font-weight: 700; }
+.cross { list-style: none; margin: 0; padding: 0; }
+.cross li { padding: 8px 0; border-bottom: 1px solid var(--rule); font-size: 14px; }
+.cross li b { font-weight: 700; }
+
+/* your data */
+.mine { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 20px; padding-bottom: 28px; }
+@media (max-width: 860px) { .mine { grid-template-columns: 1fr; } }
+textarea { width: 100%; min-height: 140px; font: 14px/1.5 var(--font-body); font-variant-numeric: tabular-nums; color: var(--ink); background: var(--plot); border: 1px solid var(--rule); border-radius: 3px; padding: 10px; resize: vertical; }
+select { font: 500 14px var(--font-body); color: var(--ink); background: var(--plot); border: 1px solid var(--rule); border-radius: 3px; padding: 7px 8px; }
+.mine .acts { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 10px; }
+.result { font-size: 15px; }
+.result .msg { color: var(--ink-soft); }
+.result.err .msg { color: #8b1d2c; }
+
+/* explainer */
+.explain { border-top: 1px solid var(--rule); padding-block: 30px 48px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 36px; }
+@media (max-width: 860px) { .explain { grid-template-columns: 1fr; } }
+.explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; }
+.explain p { margin: 0 0 10px; color: var(--ink-soft); max-width: 60ch; }
+.explain b { color: var(--ink); }
+.src { font-size: 13px; color: var(--ink-soft); padding-bottom: 36px; }
+</style>
+</head>
+<body>
+
+<header class="band pad">
+  <div class="row"><a href="index.html"><b>Winston Kan</b></a><span>Materials Science &amp; Engineering, RPI ’29</span></div>
+  <div class="head">
+    <div>
+      <h1>Thin-Wire Resistivity</h1>
+      <p class="lede">Why copper wiring gets worse as chips shrink. Pick metals, change how electrons scatter, and find the thickness where copper stops being the best conductor.</p>
+    </div>
+    <div class="swatch"><div class="nm num">426<small>nm</small></div><div>Carnation pink · SiO₂ on Si</div></div>
+  </div>
+</header>
+
+<main class="pad">
+  <section class="tool" aria-label="Resistivity chart and controls">
+    <div class="plotcard">
+      <div class="plothead"><h2>Resistivity vs. film thickness</h2><span>Hover or tap the chart to read values at a thickness</span></div>
+      <div class="chartwrap">
+        <canvas id="chart" width="960" height="600" aria-label="Line chart of resistivity versus film thickness for the selected metals"></canvas>
+        <div class="tip" id="tip" hidden></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="group">
+        <h3>Metals</h3>
+        <div class="metals" id="metals"></div>
+      </div>
+      <div class="group">
+        <h3>Scattering</h3>
+        <div class="ctl">
+          <div class="h"><label for="p">Surface reflection, p</label><output id="pOut" class="num"></output></div>
+          <input type="range" id="p" min="0" max="1" step="0.05" value="0">
+          <div class="ends"><span>rough (diffuse)</span><span>mirror-smooth</span></div>
+        </div>
+        <div class="ctl">
+          <div class="h"><label for="R">Grain-boundary reflection, R</label><output id="ROut" class="num"></output></div>
+          <input type="range" id="R" min="0" max="0.9" step="0.05" value="0.4">
+          <div class="ends"><span>none</span><span>strong</span></div>
+        </div>
+        <div class="ctl">
+          <div class="h"><label for="g">Grain size</label><output id="gOut" class="num"></output></div>
+          <input type="range" id="g" min="0.5" max="4" step="0.25" value="1">
+          <p>Sputtered grains are often about as wide as the film is thick.</p>
+        </div>
+        <div class="ctl"><button type="button" class="quiet" id="reset">Reset to defaults</button></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="below" aria-label="Values at a thickness">
+    <div class="tablebox">
+      <table>
+        <caption>At <span id="atD" class="num">10 nm</span> <span id="atHow" style="font-weight:400;color:var(--ink-soft)">(hover the chart to change)</span></caption>
+        <thead><tr><th scope="col">Metal</th><th scope="col">Bulk ρ₀</th><th scope="col">Mean free path λ</th><th scope="col">ρ at this thickness</th><th scope="col">× bulk</th></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+    <div>
+      <h2 class="subhead">Where each metal overtakes copper</h2>
+      <ul class="cross" id="cross"></ul>
+    </div>
+  </section>
+
+  <section class="mine" aria-labelledby="t-mine">
+    <div>
+      <h2 id="t-mine" class="subhead">Compare your own measurements</h2>
+      <label for="data" style="font-size:14px;color:var(--ink-soft)">One measurement per line: thickness in nm, then resistivity in μΩ·cm.</label>
+      <textarea id="data" spellcheck="false" placeholder="10, 5.1&#10;20, 3.4&#10;50, 2.4"></textarea>
+      <div class="acts">
+        <label for="dataMetal" style="font-size:14px">Metal</label>
+        <select id="dataMetal"></select>
+        <button type="button" id="fit">Plot and fit</button>
+        <button type="button" class="quiet" id="clear">Clear</button>
+      </div>
+    </div>
+    <div class="result" id="result" aria-live="polite">
+      <p class="msg">Paste four-point-probe results from films of different thickness. Your points appear on the chart, and the fit finds the p and R that match them best.</p>
+    </div>
+  </section>
+
+  <section class="explain">
+    <div>
+      <h2>Bulk metal</h2>
+      <p>Electrons in a metal travel an average distance <b>λ</b>, the mean free path, before bumping into a vibrating atom. Those collisions set the bulk resistivity <b>ρ₀</b>. Copper has the lowest ρ₀ of these metals but the longest λ, about 40 nm.</p>
+    </div>
+    <div>
+      <h2>Surfaces</h2>
+      <p>Once a film is not much thicker than λ, electrons keep hitting its top and bottom surfaces. Rough surfaces scatter them randomly (<b>p = 0</b>) and add resistance; perfectly smooth ones reflect them like a mirror (<b>p = 1</b>) and add none. This is the Fuchs–Sondheimer model.</p>
+    </div>
+    <div>
+      <h2>Grain boundaries</h2>
+      <p>Sputtered films are made of many small crystals. Each boundary between them reflects some electrons (<b>R</b>), and thinner films have smaller grains and more boundaries. This is the Mayadas–Shatzkes model. The tool adds both effects to ρ₀, a common simplification.</p>
+    </div>
+  </section>
+  <p class="src">Bulk ρ₀ and λ: D. Gall, “Electron mean free path in elemental metals,” J. Appl. Phys. 119, 085101 (2016). Co and Ru are hexagonal; λ is the average of the two crystal directions. Mo λ is derived from that paper’s ρ₀λ = 5.99 × 10⁻¹⁶ Ω·m². Results are model trends, not predictions for a specific process.</p>
+</main>
+
+<script src="resistivity.js"></script>
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const METALS = Resistivity.METALS;
+  const byId = Object.fromEntries(METALS.map((m) => [m.id, m]));
+  const DEFAULTS = { p: 0, R: 0.4, g: 1 };
+  const state = { ...DEFAULTS, on: new Set(['Cu', 'Ru', 'Co', 'Mo']), at: 10, hover: null, mine: null };
+  const D_MIN = 3, D_MAX = 300;
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const opts = () => ({ p: state.p, R: state.R, grainFactor: state.g });
+  const rho = (m, d) => Resistivity.resistivity(m, d, opts());
+  const fmt = (v, n = 2) => (Number.isFinite(v) ? v.toFixed(n) : '—');
+
+  // ---------- controls ----------
+  METALS.forEach((m) => {
+    const lab = document.createElement('label'); lab.className = 'metal'; lab.title = m.note;
+    lab.innerHTML = `<input type="checkbox" value="${m.id}" ${state.on.has(m.id) ? 'checked' : ''}><span class="sw" style="background:var(--${m.id})"></span>${m.name}`;
+    lab.querySelector('input').addEventListener('change', (e) => { e.target.checked ? state.on.add(m.id) : state.on.delete(m.id); render(); });
+    $('metals').appendChild(lab);
+    const o = document.createElement('option'); o.value = m.id; o.textContent = m.name; $('dataMetal').appendChild(o);
+  });
+  const bind = (id, key, show) => {
+    $(id).addEventListener('input', (e) => { state[key] = +e.target.value; $(id + 'Out').textContent = show(state[key]); render(); });
+    $(id + 'Out').textContent = show(state[key]);
+  };
+  bind('p', 'p', (v) => v.toFixed(2));
+  bind('R', 'R', (v) => v.toFixed(2));
+  bind('g', 'g', (v) => `${v}× thickness`);
+  $('reset').addEventListener('click', () => {
+    Object.assign(state, DEFAULTS);
+    $('p').value = DEFAULTS.p; $('R').value = DEFAULTS.R; $('g').value = DEFAULTS.g;
+    $('pOut').textContent = '0.00'; $('ROut').textContent = '0.40'; $('gOut').textContent = '1× thickness';
+    render();
+  });
+
+  // ---------- chart ----------
+  const cv = $('chart');
+  let geom = null;
+  function render() {
+    const dpr = window.devicePixelRatio || 1;
+    const w = cv.clientWidth, h = cv.clientHeight;
+    cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+    const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    const narrow = w < 520;
+    const pad = { l: narrow ? 40 : 52, r: 12, t: 10, b: narrow ? 40 : 46 };
+    const shown = METALS.filter((m) => state.on.has(m.id));
+    // y range: from 0 to the highest visible value at the thinnest film, rounded up
+    let top = 5;
+    shown.forEach((m) => (top = Math.max(top, rho(m, D_MIN))));
+    if (state.mine) state.mine.points.forEach((p) => (top = Math.max(top, p.rho)));
+    const stepY = top > 60 ? 20 : top > 30 ? 10 : 5;
+    const yMax = Math.ceil(top / stepY) * stepY;
+    const X = (d) => pad.l + (Math.log10(d / D_MIN) / Math.log10(D_MAX / D_MIN)) * (w - pad.l - pad.r);
+    const Y = (r) => h - pad.b - (r / yMax) * (h - pad.t - pad.b);
+    geom = { X, Y, pad, w, h, yMax };
+
+    const ink = css('--ink'), soft = css('--ink-soft'), grid = css('--grid');
+    ctx.font = `${narrow ? 11 : 12}px "Schibsted Grotesk", Arial, sans-serif`;
+    // grid + y labels
+    ctx.lineWidth = 1;
+    for (let r = 0; r <= yMax; r += stepY) {
+      ctx.strokeStyle = r === 0 ? 'rgba(23,20,31,.45)' : grid;
+      ctx.beginPath(); ctx.moveTo(pad.l, Y(r) + .5); ctx.lineTo(w - pad.r, Y(r) + .5); ctx.stroke();
+      ctx.fillStyle = soft; ctx.textAlign = 'right'; ctx.fillText(String(r), pad.l - 8, Y(r) + 4);
+    }
+    // x ticks
+    ctx.textAlign = 'center';
+    const xt = narrow ? [3, 10, 30, 100, 300] : [3, 5, 10, 20, 50, 100, 200, 300];
+    xt.forEach((d) => {
+      ctx.strokeStyle = grid; ctx.beginPath(); ctx.moveTo(X(d) + .5, pad.t); ctx.lineTo(X(d) + .5, h - pad.b); ctx.stroke();
+      ctx.fillStyle = soft; ctx.fillText(String(d), X(d), h - pad.b + 16);
+    });
+    ctx.fillText('film thickness (nm, log scale)', pad.l + (w - pad.l - pad.r) / 2, h - 6);
+    ctx.save(); ctx.translate(12, pad.t + (h - pad.t - pad.b) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('resistivity (μΩ·cm)', 0, 0); ctx.restore();
+
+    // selected thickness guide
+    const d0 = state.hover ?? state.at;
+    ctx.strokeStyle = 'rgba(23,20,31,.5)'; ctx.setLineDash([4, 4]);
+    ctx.beginPath(); ctx.moveTo(X(d0) + .5, pad.t); ctx.lineTo(X(d0) + .5, h - pad.b); ctx.stroke(); ctx.setLineDash([]);
+
+    // series: 2px lines
+    ctx.save(); ctx.beginPath(); ctx.rect(pad.l, pad.t, w - pad.l - pad.r, h - pad.t - pad.b); ctx.clip();
+    shown.forEach((m) => {
+      ctx.strokeStyle = css('--' + m.id); ctx.lineWidth = 2.25; ctx.lineJoin = 'round';
+      ctx.beginPath();
+      for (let i = 0; i <= 200; i++) { const d = D_MIN * Math.pow(D_MAX / D_MIN, i / 200); const v = rho(m, d); i ? ctx.lineTo(X(d), Y(v)) : ctx.moveTo(X(d), Y(v)); }
+      ctx.stroke();
+    });
+    // markers at the selected thickness, with a surface ring
+    shown.forEach((m) => {
+      const v = rho(m, d0);
+      ctx.beginPath(); ctx.arc(X(d0), Y(v), 5, 0, 2 * Math.PI);
+      ctx.fillStyle = css('--' + m.id); ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = css('--plot'); ctx.stroke();
+    });
+    // your measurements
+    if (state.mine) {
+      const col = css('--' + state.mine.metal.id);
+      state.mine.points.forEach((p) => {
+        ctx.beginPath(); ctx.arc(X(p.d), Y(p.rho), 5.5, 0, 2 * Math.PI);
+        ctx.fillStyle = css('--plot'); ctx.fill(); ctx.lineWidth = 2.5; ctx.strokeStyle = col; ctx.stroke();
+      });
+      if (state.mine.fit) {
+        ctx.strokeStyle = ink; ctx.lineWidth = 1.5; ctx.setLineDash([6, 4]); ctx.beginPath();
+        const f = state.mine.fit;
+        for (let i = 0; i <= 200; i++) { const d = D_MIN * Math.pow(D_MAX / D_MIN, i / 200); const v = Resistivity.resistivity(state.mine.metal, d, { p: f.p, R: f.R, grainFactor: state.g }); i ? ctx.lineTo(X(d), Y(v)) : ctx.moveTo(X(d), Y(v)); }
+        ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+    ctx.restore();
+    renderTable(d0);
+    renderCross();
+  }
+
+  // ---------- hover layer ----------
+  function dFromEvent(e) {
+    const r = cv.getBoundingClientRect();
+    const x = e.clientX - r.left;
+    const { pad, w } = geom;
+    const t = (x - pad.l) / (w - pad.l - pad.r);
+    if (t < 0 || t > 1) return null;
+    return D_MIN * Math.pow(D_MAX / D_MIN, t);
+  }
+  function showTip(e, d) {
+    const tip = $('tip');
+    const shown = METALS.filter((m) => state.on.has(m.id)).map((m) => ({ m, v: rho(m, d) })).sort((a, b) => a.v - b.v);
+    tip.innerHTML = `<b class="num">${d < 10 ? d.toFixed(1) : Math.round(d)} nm film</b>` +
+      shown.map(({ m, v }) => `<div><i style="background:var(--${m.id})"></i>${m.name}<span class="r num">${fmt(v)} μΩ·cm</span></div>`).join('');
+    tip.hidden = false;
+    const wrap = cv.getBoundingClientRect();
+    let left = e.clientX - wrap.left + 14, top = e.clientY - wrap.top + 14;
+    if (left + tip.offsetWidth > wrap.width) left = e.clientX - wrap.left - tip.offsetWidth - 14;
+    if (top + tip.offsetHeight > wrap.height) top = Math.max(0, wrap.height - tip.offsetHeight);
+    tip.style.left = left + 'px'; tip.style.top = top + 'px';
+  }
+  cv.addEventListener('pointermove', (e) => {
+    const d = dFromEvent(e);
+    if (d == null) { state.hover = null; $('tip').hidden = true; render(); return; }
+    state.hover = d; render(); showTip(e, d);
+  });
+  cv.addEventListener('pointerleave', () => { state.hover = null; $('tip').hidden = true; render(); });
+  cv.addEventListener('pointerdown', (e) => { const d = dFromEvent(e); if (d != null) { state.at = d; } });
+
+  // ---------- table (also the accessible view of the chart) ----------
+  function renderTable(d) {
+    $('atD').textContent = (d < 10 ? d.toFixed(1) : Math.round(d)) + ' nm';
+    $('atHow').textContent = state.hover != null ? '' : '(hover or tap the chart to change)';
+    const list = METALS.filter((m) => state.on.has(m.id)).map((m) => ({ m, v: rho(m, d) })).sort((a, b) => a.v - b.v);
+    $('rows').innerHTML = list.map(({ m, v }, i) =>
+      `<tr class="${i === 0 ? 'best' : ''}"><td><i style="background:var(--${m.id})"></i>${m.name}${i === 0 ? ' · lowest' : ''}</td>` +
+      `<td class="num">${m.rho0.toFixed(2)} μΩ·cm</td><td class="num">${m.lambda.toFixed(1)} nm</td>` +
+      `<td class="num">${fmt(v)} μΩ·cm</td><td class="num">${(v / m.rho0).toFixed(1)}×</td></tr>`
+    ).join('') || '<tr><td colspan="5">Select at least one metal.</td></tr>';
+  }
+  function renderCross() {
+    const cu = byId.Cu;
+    $('cross').innerHTML = METALS.filter((m) => m.id !== 'Cu').map((m) => {
+      const x = Resistivity.crossover(m, cu, opts());
+      const txt = x == null
+        ? (rho(m, 10) > rho(cu, 10) ? 'stays above copper at every thickness from 1 to 1000 nm' : 'is below copper at every thickness')
+        : x < 3 ? `beats copper only below ${x.toFixed(1)} nm, thinner than real wires`
+        : `beats copper below <b class="num">${x.toFixed(1)} nm</b>`;
+      return `<li><i style="display:inline-block;width:12px;height:3px;border-radius:2px;margin-right:8px;vertical-align:3px;background:var(--${m.id})"></i>${m.name} ${txt}</li>`;
+    }).join('');
+  }
+
+  // ---------- your measurements ----------
+  function parse(text) {
+    const pts = [], bad = [];
+    text.split(/\n+/).forEach((line, i) => {
+      const t = line.trim(); if (!t) return;
+      const nums = t.split(/[\s,;\t]+/).map(Number).filter((v) => !Number.isNaN(v));
+      if (nums.length >= 2 && nums[0] > 0 && nums[1] > 0) pts.push({ d: nums[0], rho: nums[1] });
+      else bad.push(i + 1);
+    });
+    return { pts, bad };
+  }
+  $('fit').addEventListener('click', () => {
+    const { pts, bad } = parse($('data').value);
+    const metal = byId[$('dataMetal').value];
+    const box = $('result');
+    if (!pts.length) {
+      box.className = 'result err';
+      box.innerHTML = `<p class="msg">No measurements found. Put one per line as thickness, resistivity, for example <b>20, 3.4</b>.</p>`;
+      state.mine = null; render(); return;
+    }
+    const fit = pts.length >= 2 ? Resistivity.fit(metal, pts, state.g) : null;
+    state.mine = { metal, points: pts, fit };
+    state.on.add(metal.id);
+    document.querySelectorAll('#metals input').forEach((i) => (i.checked = state.on.has(i.value)));
+    box.className = 'result';
+    box.innerHTML =
+      (fit ? `<p><b>Best fit for ${metal.name}:</b> p = <b class="num">${fit.p.toFixed(2)}</b>, R = <b class="num">${fit.R.toFixed(3)}</b>, typical miss ${fit.rmsPercent.toFixed(1)}%.</p>
+              <p class="msg">The dashed ink line is the fitted model. p and R trade off against each other, so treat them as a pair, not exact values.</p>`
+           : `<p class="msg">Plotted 1 point. Add at least two thicknesses to fit p and R.</p>`) +
+      (bad.length ? `<p class="msg">Skipped line${bad.length > 1 ? 's' : ''} ${bad.join(', ')}: couldn’t read two positive numbers.</p>` : '');
+    render();
+  });
+  $('clear').addEventListener('click', () => {
+    $('data').value = ''; state.mine = null;
+    $('result').className = 'result';
+    $('result').innerHTML = '<p class="msg">Paste four-point-probe results from films of different thickness. Your points appear on the chart, and the fit finds the p and R that match them best.</p>';
+    render();
+  });
+
+  window.addEventListener('resize', render);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(render);
+  render();
+})();
+</script>
+</body>
+</html>

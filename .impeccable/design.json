@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-19T02:39:19.847002Z",
+  "title": "Design System: Winston Kan — Oxide Color Chart",
+  "extensions": {
+    "colorMeta": {
+      "bare-silicon": {
+        "role": "neutral",
+        "displayName": "Bare Silicon (0 nm)"
+      },
+      "film-125-royal-blue": {
+        "role": "primary",
+        "displayName": "Royal Blue, 125 nm"
+      },
+      "film-310-blue": {
+        "role": "primary",
+        "displayName": "Blue, 310 nm"
+      },
+      "film-426-carnation-pink": {
+        "role": "primary",
+        "displayName": "Carnation Pink, 426 nm"
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink"
+      },
+      "film-225-gold": {
+        "role": "primary",
+        "displayName": "Gold, 225 nm"
+      },
+      "film-476-violet": {
+        "role": "primary",
+        "displayName": "Violet, 476 nm"
+      },
+      "film-600-carnation-pink": {
+        "role": "primary",
+        "displayName": "Carnation Pink, 600 nm (second order)"
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Name on the wafer; tool page titles."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Project and section titles."
+      },
+      "swatch-figure": {
+        "displayName": "Swatch figure",
+        "purpose": "Thickness numbers in band labels."
+      }
+    },
+    "shadows": [
+      {
+        "name": "tooltip",
+        "value": "0 6px 18px rgba(23,20,31,.25)",
+        "purpose": "Chart tooltips only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "grow",
+        "value": "1700ms, exponential ease-out (1 - 2^-10t)",
+        "purpose": "The oxide grows from 0 to 125 nm on arrival; skipped with reduced motion."
+      },
+      {
+        "name": "nudge",
+        "value": "transform .25s cubic-bezier(.16,1,.3,1)",
+        "purpose": "Open-button hover."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "band-stack",
+        "value": "760px"
+      },
+      {
+        "name": "work-stack",
+        "value": "1000px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Open Button",
+      "kind": "button",
+      "refersTo": "button-open",
+      "description": "Primary action into a project.",
+      "html": "<a class=\"ds-open\" href=\"#\">Open the viewer <svg viewBox=\"0 0 24 24\" width=\"18\" height=\"18\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M5 12h14M13 6l6 6-6 6\"/></svg></a>",
+      "css": ".ds-open{display:inline-flex;align-items:center;gap:10px;font:700 16px 'Schibsted Grotesk',Arial,sans-serif;text-decoration:none;background:#17141f;color:#d8d8ed;padding:13px 20px;border-radius:3px;transition:transform .25s cubic-bezier(.16,1,.3,1)}.ds-open:hover{transform:translateX(4px)}.ds-open:focus-visible{outline:3px solid #17141f;outline-offset:3px}"
+    },
+    {
+      "name": "Swatch Label",
+      "kind": "custom",
+      "description": "Thickness and chart color name for a band.",
+      "html": "<div class=\"ds-swatch\"><div class=\"ds-nm\">225<small>nm</small></div><div class=\"ds-name\">Gold</div><div class=\"ds-stack\">SiO₂ on Si</div></div>",
+      "css": ".ds-swatch{background:#dec193;color:#17141f;padding:20px;font-family:'Schibsted Grotesk',Arial,sans-serif}.ds-nm{font:800 64px/.9 'Big Shoulders Display','Arial Narrow',sans-serif;font-variant-numeric:tabular-nums}.ds-nm small{font-size:26px;margin-left:2px}.ds-name{font-size:15px;font-weight:600}.ds-stack{font-size:13px;color:rgba(23,20,31,.84)}"
+    },
+    {
+      "name": "Chart Strip",
+      "kind": "custom",
+      "description": "Draggable 0–600 nm oxide color scale.",
+      "html": "<div class=\"ds-strip\"><span class=\"ds-mark\"></span></div>",
+      "css": ".ds-strip{position:relative;height:54px;border-radius:3px;background:linear-gradient(90deg,#d8d8ed,#998792 12.5%,#7378b6 16.7%,#78a1e0 20.8%,#dec193 33.3%,#dec193 37.5%,#b175da 45.8%,#54a2ee 51.7%,#73d1cc 57.5%,#d1d09f 65%,#eca2d0 71%,#a194e1 80%,#39c6b6 86.7%,#bbc8c6 95.7%,#dfb1db);box-shadow:inset 0 0 0 1px rgba(23,20,31,.22)}.ds-mark{position:absolute;top:-6px;bottom:-6px;left:20.8%;width:3px;background:#17141f;border-radius:2px}"
+    },
+    {
+      "name": "Fact List",
+      "kind": "custom",
+      "description": "Model / Checked lines in a project band.",
+      "html": "<dl class=\"ds-facts\"><div><dt>Model</dt><dd>Planes from the reciprocal-lattice vector G.</dd></div><div><dt>Checked</dt><dd>Si (111) d = 3.136 Å.</dd></div></dl>",
+      "css": ".ds-facts{margin:0;border-top:1px solid rgba(23,20,31,.22);font:15px/1.5 'Schibsted Grotesk',Arial,sans-serif;color:#17141f;background:#dec193}.ds-facts div{display:grid;grid-template-columns:7.5em 1fr;gap:12px;padding:10px 0;border-bottom:1px solid rgba(23,20,31,.22)}.ds-facts dt{font-weight:600}.ds-facts dd{margin:0;color:rgba(23,20,31,.84)}"
+    },
+    {
+      "name": "Metal Toggle",
+      "kind": "chip",
+      "description": "Series toggle doubling as chart legend.",
+      "html": "<label class=\"ds-chip\"><span class=\"ds-sw\"></span>Copper</label>",
+      "css": ".ds-chip{display:inline-flex;align-items:center;gap:8px;border:1px solid #17141f;border-radius:3px;padding:6px 8px;font:600 14px 'Schibsted Grotesk',Arial,sans-serif;color:#17141f;background:#fbfbfd}.ds-sw{width:14px;height:3px;border-radius:2px;background:#2a78d6}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Oxide Color Chart",
+    "overview": "The site is a thermal-oxide color chart: full-bleed bands of the computed interference color of SiO₂ on silicon, thickness rising down the page, each labeled with its nm value and chart color name. The opening is a wafer that recolors as the visitor drags the 0–600 nm chart strip.",
+    "keyCharacteristics": [
+      "Colors computed from physics, never picked",
+      "Thickness rises down the page",
+      "Ink on every band",
+      "Tall condensed display type with a plain grotesk",
+      "One round object: the wafer with its flat"
+    ],
+    "rules": [
+      {
+        "name": "The Computed Color Rule",
+        "body": "Every band color comes from filmcolor.js at a labeled thickness.",
+        "section": "colors"
+      },
+      {
+        "name": "The Rising Thickness Rule",
+        "body": "Bands appear in increasing thickness order.",
+        "section": "colors"
+      },
+      {
+        "name": "The Measured Numbers Rule",
+        "body": "All measurements use tabular figures.",
+        "section": "typography"
+      }
+    ],
+    "dos": [
+      "Do compute new band colors from a thickness and label them",
+      "Do draw previews in ink",
+      "Do give every chart a value table"
+    ],
+    "donts": [
+      "Don't pick colors by eye or add a dark theme",
+      "Don't put a label above a heading",
+      "Don't wrap band content in shadowed cards"
+    ]
+  }
+}

@@ -5,203 +5,354 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Winston Kan</title>
 <meta name="claude:viewport-fit-sides" content="cover">
-<meta name="description" content="Winston Kan, Materials Science and Engineering at RPI. Thin films, crystallography, and a path into semiconductor manufacturing.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+<meta name="description" content="Winston Kan, Materials Science and Engineering at RPI. Working simulations of the physics behind thin films and chips.">
 <style>
-/* Layout: a lab-notebook portfolio. Hero pairs the name with a live sapphire cell; sections below run on a left label column + right content column. */
+@font-face { font-family: "Big Shoulders Display"; src: url("fonts/big-shoulders-display.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/schibsted-grotesk.woff") format("woff"); font-weight: 400 900; font-display: swap; }
+/* Layout: a thermal-oxide color chart. Full-bleed bands of computed SiO2-on-Si color, thickness rising down the page;
+   a swatch-label column carries each band's nm value. One object: the wafer in the opening. */
 :root {
-  --bg: #eef1f4;
-  --surface: #f9fafb;
-  --fg: #141b2b;
-  --muted: #5a6476;
-  --line: #cfd6df;
-  --cell: #8a95a8;
-  --plane-a: #1d4fd8;
-  --plane-b: #c26a07;
-  --focus: #1d4fd8;
-  --font-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
-  color-scheme: light;
-}
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
-    --cell: #6c7891; --plane-a: #6f9bff; --plane-b: #f0a23b; --focus: #8fb1ff; color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --bg: #0e131d; --surface: #151c2a; --fg: #e5e9f0; --muted: #94a0b5; --line: #263044;
-  --cell: #6c7891; --plane-a: #6f9bff; --plane-b: #f0a23b; --focus: #8fb1ff; color-scheme: dark;
+  /* Every film color below is computed by filmcolor.js from the thickness in its name. */
+  --si: #d8d8ed;          /* 0 nm, bare silicon */
+  --film-125: #78a1e0;    /* royal blue */
+  --film-225: #dec193;    /* gold */
+  --film-310: #54a2ee;    /* blue */
+  --film-426: #eca2d0;    /* carnation pink */
+  --film-476: #ac8fe4;    /* violet */
+  --film-600: #dfb1db;    /* carnation pink, second order */
+  --ink: #17141f;         /* every band is light enough for dark ink */
+  --ink-soft: rgba(23, 20, 31, .84);
+  --ink-faint: rgba(23, 20, 31, .38);
+  --rule: rgba(23, 20, 31, .22);
+  --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: light;   /* a committed single world: film colors are physical, not themeable */
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.6 var(--font-body); }
-.wrap {
-  max-width: 1080px; margin: 0 auto;
-  padding-left: max(16px, env(safe-area-inset-left, 0px));
-  padding-right: max(16px, env(safe-area-inset-right, 0px));
-}
-a { color: var(--plane-a); text-underline-offset: 3px; }
-a:focus-visible, button:focus-visible { outline: 2px solid var(--focus); outline-offset: 3px; border-radius: 2px; }
-.mono { font-family: var(--font-mono); }
-.bar { text-decoration: overline; }
+[hidden] { display: none !important; }
+html { scrollbar-color: var(--ink-faint) var(--si); }
+body { margin: 0; background: var(--si); color: var(--ink); font: 17px/1.6 var(--font-body); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--ink); color: var(--si); }
+a { color: inherit; text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+a:hover { text-decoration-thickness: 3px; }
+:focus-visible { outline: 3px solid var(--ink); outline-offset: 3px; border-radius: 2px; }
+.num { font-variant-numeric: tabular-nums; }
 
-/* ---------- hero ---------- */
-.hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 32px; align-items: center; padding-block: 56px 40px; }
-@media (max-width: 820px) { .hero { grid-template-columns: 1fr; padding-block: 36px 24px; } }
-.hero .eyebrow { font: 500 12px/1 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); }
-.hero h1 {
-  font-family: var(--font-display); font-weight: 800; font-stretch: 125%;
-  font-size: clamp(46px, 9vw, 92px); line-height: .92; letter-spacing: -.02em; margin: 14px 0 18px;
-}
-.hero .statement { font-size: clamp(18px, 2.2vw, 21px); line-height: 1.45; max-width: 34ch; margin: 0; text-wrap: pretty; }
-.hero .facts { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 22px; font: 14px var(--font-mono); color: var(--muted); }
-.specimen { margin: 0; }
-.specimen .frame { aspect-ratio: 1 / 1; max-width: 100%; width: 100%; max-height: 460px; position: relative; }
-.specimen canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
-.specimen figcaption { font: 13px var(--font-mono); color: var(--muted); display: flex; justify-content: space-between; gap: 12px; flex-wrap: wrap; border-top: 1px solid var(--line); padding-top: 10px; }
-.specimen figcaption b { color: var(--plane-a); font-weight: 600; }
+/* ---------- opening ---------- */
+.opening { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-block: 18px 28px; display: grid; gap: 14px; }
+.top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.mark { font: 700 15px/1.35 var(--font-body); letter-spacing: .02em; }
+.mark span { font-weight: 400; color: var(--ink-soft); }
+.top nav { display: flex; gap: 20px; font-size: 15px; }
 
-/* ---------- sections ---------- */
-section.block { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 24px 40px; border-top: 1px solid var(--line); padding-block: 40px; }
-@media (max-width: 820px) { section.block { grid-template-columns: 1fr; padding-block: 28px; } }
-.label { font: 600 12px/1.4 var(--font-mono); letter-spacing: .1em; text-transform: uppercase; color: var(--muted); padding-top: 6px; }
-h2 { font-family: var(--font-display); font-weight: 750; font-stretch: 110%; font-size: clamp(26px, 3.6vw, 34px); line-height: 1.05; margin: 0 0 12px; text-wrap: balance; }
-h3 { font-family: var(--font-display); font-weight: 700; font-stretch: 105%; font-size: 19px; line-height: 1.25; margin: 0; text-wrap: balance; }
-p { margin: 0; max-width: 64ch; }
-.muted { color: var(--muted); }
+.waferstage { display: grid; place-items: center; padding-block: 8px 28px; }
+.wafer { position: relative; width: min(640px, 100%, max(74vmin, 88vw)); aspect-ratio: 1 / 1; display: grid; place-items: center; }
+.wafer svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+.wafer .disc { fill: var(--film-125); transition: fill .08s linear; }
+.wafer .edge { fill: none; stroke: var(--ink); stroke-width: .6; opacity: .55; }
+.wafer .words { position: relative; text-align: center; padding: 0 14%; display: grid; gap: .6em; transform: translateY(-3%); }
+h1 { font-family: var(--font-display); font-weight: 900; font-size: clamp(2.6rem, 12vmin, 6rem); line-height: .86; letter-spacing: -.01em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+.wafer .words p { margin: 0 auto; max-width: 30ch; font-size: clamp(15px, 2.1vmin, 18px); line-height: 1.45; text-wrap: balance; }
+.wafer .flatnote { position: absolute; bottom: -1.6em; left: 50%; transform: translateX(-50%); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); white-space: nowrap; }
 
-/* featured project */
-.project { display: grid; gap: 18px; }
-.project .what { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; margin-top: 6px; }
-@media (max-width: 680px) { .project .what { grid-template-columns: 1fr; } }
-.project .what div { border-top: 2px solid var(--plane-a); padding-top: 10px; }
-.project .what h4 { font: 600 14px var(--font-body); margin: 0 0 4px; }
-.project .what p { font-size: 14px; color: var(--muted); }
-.actions { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
-.btn {
-  display: inline-block; font: 600 15px var(--font-body); text-decoration: none;
-  padding: 10px 18px; border-radius: 4px; background: var(--plane-a); color: var(--bg);
-}
-.btn:hover { filter: brightness(1.08); }
-.btn.ghost { background: transparent; color: var(--fg); border: 1px solid var(--line); }
-.tags { display: flex; flex-wrap: wrap; gap: 6px; }
-.tag { font: 12px var(--font-mono); color: var(--muted); border: 1px solid var(--line); border-radius: 3px; padding: 2px 7px; }
+/* the chart strip is the control */
+.chart { display: grid; gap: 8px; }
+.chart .readout { display: flex; justify-content: space-between; align-items: baseline; gap: 6px 16px; flex-wrap: wrap; font-size: 15px; }
+.chart .readout b { font: 800 26px/1 var(--font-display); letter-spacing: .01em; }
+.chart .readout .how { color: var(--ink-soft); }
+.track { position: relative; height: 54px; border-radius: 3px; background: linear-gradient(90deg, #d8d8ed 0.000%, #d8d8ec 0.833%, #d7d7eb 1.667%, #d5d5e8 2.500%, #d4d3e4 3.333%, #d1cfe0 4.167%, #cecbd9 5.000%, #cbc6d2 5.833%, #c7c1ca 6.667%, #c2bac1 7.500%, #bcb3b6 8.333%, #b6abac 9.167%, #b0a3a2 10.000%, #a99a99 10.833%, #a19094 11.667%, #998792 12.500%, #918094 13.333%, #897999 14.167%, #8176a2 15.000%, #7975ac 15.833%, #7378b6 16.667%, #6f7ec1 17.500%, #6d85ca 18.333%, #6e8ed3 19.167%, #7297da 20.000%, #78a1e0 20.833%, #7fa9e5 21.667%, #87b2e9 22.500%, #90b9ec 23.333%, #99c0ed 24.167%, #a1c6ee 25.000%, #a9cbee 25.833%, #b1cfec 26.667%, #b8d3ea 27.500%, #bed6e6 28.333%, #c3d8e2 29.167%, #c8d9dc 30.000%, #cddad5 30.833%, #d0dacd 31.667%, #d4d9c4 32.500%, #d6d7bb 33.333%, #d9d5b1 34.167%, #dbd1a7 35.000%, #dccd9e 35.833%, #ddc897 36.667%, #dec193 37.500%, #deba92 38.333%, #ddb295 39.167%, #dca99c 40.000%, #d99fa4 40.833%, #d696ad 41.667%, #d18cb7 42.500%, #cb83c1 43.333%, #c47ccb 44.167%, #bb77d3 45.000%, #b175da 45.833%, #a576e1 46.667%, #987ae6 47.500%, #8b80ea 48.333%, #7c87ec 49.167%, #6e90ee 50.000%, #6099ee 50.833%, #54a2ee 51.667%, #4babec 52.500%, #47b3e9 53.333%, #4abbe5 54.167%, #51c2e0 55.000%, #5bc8db 55.833%, #67cdd4 56.667%, #73d1cc 57.500%, #80d5c4 58.333%, #8cd8bb 59.167%, #98d9b3 60.000%, #a3daab 60.833%, #aedaa4 61.667%, #b8d9a0 62.500%, #c1d79d 63.333%, #cad49d 64.167%, #d1d09f 65.000%, #d8cca3 65.833%, #dec7a9 66.667%, #e3c0b0 67.500%, #e7bab8 68.333%, #eab3c0 69.167%, #ebabc7 70.000%, #eca4ce 70.833%, #ec9cd5 71.667%, #ea95da 72.500%, #e78fdf 73.333%, #e38ae3 74.167%, #dd86e6 75.000%, #d684e8 75.833%, #ce84e8 76.667%, #c585e8 77.500%, #ba89e7 78.333%, #ae8ee5 79.167%, #a194e1 80.000%, #939add 80.833%, #84a1d8 81.667%, #75a8d3 82.500%, #65afcd 83.333%, #55b6c7 84.167%, #47bcc1 85.000%, #3dc2bb 85.833%, #39c6b6 86.667%, #3dcab1 87.500%, #47ceae 88.333%, #55d0ad 89.167%, #63d1ad 90.000%, #72d2ae 90.833%, #81d2b0 91.667%, #8fd1b4 92.500%, #9cd0b8 93.333%, #a8cebd 94.167%, #b3cbc2 95.000%, #bdc7c7 95.833%, #c6c4cc 96.667%, #cebfd0 97.500%, #d5bbd4 98.333%, #dab6d8 99.167%, #dfb1db 100.000%); box-shadow: inset 0 0 0 1px var(--rule); }
+.track input { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; }
+.track .marker { position: absolute; top: -6px; bottom: -6px; width: 3px; background: var(--ink); left: 0; transform: translateX(-50%); pointer-events: none; border-radius: 2px; }
+.track .marker::after { content: ""; position: absolute; top: -2px; left: 50%; width: 13px; height: 13px; transform: translate(-50%, 0) rotate(45deg); background: var(--ink); border-radius: 2px; }
+.track:has(input:focus-visible) { outline: 3px solid var(--ink); outline-offset: 3px; }
+.ticks { position: relative; height: 18px; font-size: 12px; color: var(--ink-soft); }
+.ticks span { position: absolute; top: 0; transform: translateX(-50%); white-space: nowrap; }
+.ticks span:first-child { transform: none; }
+.ticks span:last-child { transform: translateX(-100%); }
+@media (max-width: 480px) { .ticks .odd { display: none; } }
+.down { justify-self: start; display: inline-flex; align-items: center; gap: 8px; font-weight: 600; font-size: 16px; margin-top: 6px; }
+.down svg { width: 18px; height: 18px; transition: transform .3s cubic-bezier(.16, 1, .3, 1); }
+.down:hover svg { transform: translateY(3px); }
 
-/* log entries */
-.log { display: grid; gap: 28px; }
-.entry { display: grid; gap: 8px; }
-.entry .meta { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; }
-.status { font: 600 11px/1 var(--font-mono); letter-spacing: .08em; text-transform: uppercase; padding: 4px 7px; border-radius: 3px; border: 1px solid currentColor; }
-.status.now { color: var(--plane-a); }
-.status.done { color: var(--muted); }
-.status.next { color: var(--plane-b); }
-.when { font: 13px var(--font-mono); color: var(--muted); }
-.entry ul { margin: 2px 0 0; padding-left: 18px; max-width: 64ch; }
-.entry li { margin: 3px 0; }
-.entry li::marker { color: var(--muted); }
+/* ---------- bands ---------- */
+.band { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-block: clamp(40px, 7vw, 88px); display: grid; grid-template-columns: minmax(130px, 200px) minmax(0, 1fr); gap: 24px clamp(20px, 4vw, 56px); border-top: 1px solid var(--rule); }
+@media (max-width: 760px) { .band { grid-template-columns: 1fr; gap: 18px; } }
+.swatch { display: grid; align-content: start; gap: 2px; }
+.swatch .nm { font: 800 clamp(44px, 6vw, 72px)/.9 var(--font-display); letter-spacing: -.01em; }
+.swatch .nm small { font-size: clamp(18px, 2.5vw, 30px); font-weight: 700; margin-left: 2px; }
+.swatch .name { font-size: 15px; font-weight: 600; }
+.swatch .stack { font-size: 13px; color: var(--ink-soft); }
+@media (max-width: 760px) { .swatch { grid-template-columns: auto 1fr; align-items: end; column-gap: 14px; } .swatch .nm { grid-row: span 2; } }
 
-.cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px 40px; }
-@media (max-width: 680px) { .cols { grid-template-columns: 1fr; } }
-.cols h3 { font-size: 16px; margin-bottom: 6px; }
-.list { list-style: none; margin: 0; padding: 0; }
-.list li { padding: 7px 0; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; gap: 12px; }
-.list li span:last-child { color: var(--muted); font: 13px var(--font-mono); white-space: nowrap; }
+.work { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 28px clamp(24px, 4vw, 56px); align-items: start; }
+@media (max-width: 1000px) { .work { grid-template-columns: 1fr; } }
+h2 { font: 800 clamp(38px, 5.4vw, 64px)/.92 var(--font-display); text-transform: uppercase; letter-spacing: 0; margin: 0 0 18px; text-wrap: balance; }
+.work p { margin: 0 0 14px; max-width: 62ch; }
+.facts { display: grid; gap: 0; margin: 22px 0 26px; border-top: 1px solid var(--rule); max-width: 62ch; }
+.facts div { display: grid; grid-template-columns: 7.5em minmax(0, 1fr); gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--rule); font-size: 15px; }
+.facts dt { font-weight: 600; }
+.facts dd { margin: 0; color: var(--ink-soft); }
+.open { display: inline-flex; align-items: center; gap: 10px; font: 700 16px var(--font-body); text-decoration: none; background: var(--ink); color: var(--si); padding: 13px 20px; border-radius: 3px; transition: transform .25s cubic-bezier(.16, 1, .3, 1); }
+.open:hover { transform: translateX(4px); }
+.open svg { width: 18px; height: 18px; }
+.preview { position: relative; margin: 0; }
+.preview canvas { display: block; width: 100%; height: auto; aspect-ratio: 4 / 3; max-width: 100%; }
+.preview figcaption { font-size: 13px; color: var(--ink-soft); margin-top: 8px; }
+.wip { display: inline-block; font-size: 12px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; border: 1.5px solid var(--ink); border-radius: 2px; padding: 2px 7px; margin-bottom: 12px; }
 
-footer { border-top: 1px solid var(--line); padding-block: 28px 48px; font: 13px var(--font-mono); color: var(--muted); }
+.band.p225 { background: var(--film-225); }
+.band.p310 { background: var(--film-310); }
+.band.p426 { background: var(--film-426); }
+.band.p476 { background: var(--film-476); }
+.band.p600 { background: var(--film-600); }
+
+.log { display: grid; gap: 26px 48px; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); }
+.log article { max-width: 52ch; }
+.log h3 { font: 800 30px/1 var(--font-display); text-transform: uppercase; margin: 0 0 6px; }
+.log p { margin: 0; }
+.log .when { font-size: 14px; color: var(--ink-soft); margin: 0 0 8px; }
+
+.close h2 { margin-bottom: 14px; }
+.close p { max-width: 58ch; margin: 0 0 12px; }
+footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-block: 22px 40px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; font-size: 13px; color: var(--ink-soft); background: var(--film-600); border-top: 1px solid var(--rule); }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
 <body>
-<div class="wrap">
 
-  <header class="hero">
-    <div>
-      <div class="eyebrow">Materials Science &amp; Engineering · RPI · Class of 2029</div>
-      <h1>Winston Kan</h1>
-      <p class="statement">I'm a materials science student building toward semiconductor manufacturing: process engineering, metrology, and failure analysis.</p>
-      <div class="facts"><span>Troy, NY</span><span>Open to summer 2027 internships</span></div>
+<header class="opening" id="top">
+  <div class="top">
+    <div class="mark">Winston Kan <span>· Materials Science &amp; Engineering, RPI ’29</span></div>
+    <nav aria-label="Sections"><a href="#projects">Projects</a><a href="#experience">Experience</a></nav>
+  </div>
+
+  <div class="waferstage">
+    <div class="wafer" id="wafer">
+      <svg viewBox="0 0 200 200" aria-hidden="true">
+        <defs>
+          <linearGradient id="sheen" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#fff" stop-opacity=".28"/>
+            <stop offset=".45" stop-color="#fff" stop-opacity="0"/>
+            <stop offset=".8" stop-color="#000" stop-opacity=".06"/>
+          </linearGradient>
+        </defs>
+        <path class="disc" id="disc" d="M57.4 186 A96 96 0 1 1 142.6 186 Z"/>
+        <path d="M57.4 186 A96 96 0 1 1 142.6 186 Z" fill="url(#sheen)"/>
+        <path class="edge" d="M57.4 186 A96 96 0 1 1 142.6 186 Z"/>
+      </svg>
+      <div class="words">
+        <h1>Winston Kan</h1>
+        <p>Materials science student building working simulations of the physics behind thin films and chips.</p>
+      </div>
+      <div class="flatnote">SiO₂ film on a silicon wafer</div>
     </div>
-    <figure class="specimen">
-      <div class="frame"><canvas id="hero" aria-label="Rotating silicon unit cell with (111) planes drawn through it"></canvas></div>
-      <figcaption><span>Silicon, <b><span class="mono">(111)</span> planes</b></span><span>drag to rotate</span></figcaption>
-    </figure>
-  </header>
+  </div>
 
-  <section class="block" id="project">
-    <div class="label">Featured project</div>
-    <div class="project">
+  <div class="chart">
+    <div class="readout" aria-live="polite">
+      <span><b class="num" id="nmOut">125 nm</b> &nbsp;<span id="nameOut">Royal blue</span></span>
+      <span class="how">Drag along the chart to grow the oxide. The wafer shows the color that thickness really has.</span>
+    </div>
+    <div class="track">
+      <input type="range" id="thick" min="0" max="600" step="1" value="125" aria-label="Oxide thickness in nanometers">
+      <span class="marker" id="marker"></span>
+    </div>
+    <div class="ticks num" aria-hidden="true"><span style="left:0">0 nm</span><span class="odd" style="left:16.667%">100</span><span style="left:33.333%">200</span><span class="odd" style="left:50%">300</span><span style="left:66.667%">400</span><span class="odd" style="left:83.333%">500</span><span style="left:100%">600 nm</span></div>
+  </div>
+  <a class="down" href="#projects">See the projects <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M6 13l6 6 6-6"/></svg></a>
+</header>
+
+<main id="projects">
+  <section class="band p225" aria-labelledby="t-viewer">
+    <div class="swatch"><div class="nm num">225<small>nm</small></div><div class="name">Gold</div><div class="stack">SiO₂ on Si</div></div>
+    <div class="work">
       <div>
-        <h2>Substrate Plane Viewer</h2>
-        <p>Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. I could recite those Miller indices but couldn't picture the cuts inside the crystal, so I built a tool that draws them. It takes any plane in a cubic or hexagonal crystal, slices it through the unit cell in 3D, and reports the plane spacing and the angle to a second plane.</p>
+        <h2 id="t-viewer">Substrate Plane Viewer</h2>
+        <p>Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. I could recite the Miller indices but couldn’t picture the cuts, so I built a tool that slices any plane through a cubic or hexagonal unit cell in 3D.</p>
+        <dl class="facts">
+          <div><dt>Model</dt><dd>Planes from the reciprocal-lattice vector G; spacing d = 1/|G|.</dd></div>
+          <div><dt>Checked</dt><dd>Sapphire R-plane d = 3.48 Å and 57.6° from C-plane; Si (111) d = 3.136 Å.</dd></div>
+        </dl>
+        <a class="open" href="visualizer.html">Open the viewer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
-      <div class="what">
-        <div><h4>The math</h4><p>Each plane is the set of points where the reciprocal-lattice vector G satisfies G·r = n. Its length gives d = 1/|G|.</p></div>
-        <div><h4>The check</h4><p>Results match reference values: R-plane sapphire d = 3.48 Å, 57.6° from C-plane; Si (111) d = 3.136 Å.</p></div>
-        <div><h4>The use</h4><p>Comparing wafer and substrate orientations, and matching XRD peaks to the planes that produce them.</p></div>
-      </div>
-      <div class="actions">
-        <a class="btn" href="visualizer.html">Open the viewer</a>
-        <div class="tags"><span class="tag">JavaScript</span><span class="tag">Canvas 2D</span><span class="tag">Crystallography</span><span class="tag">Miller–Bravais indices</span></div>
-      </div>
+      <figure class="preview"><canvas id="pv-viewer" width="640" height="480" aria-label="Silicon unit cell with (111) planes, rotating"></canvas><figcaption>Live: silicon, (111) planes. Drag to rotate.</figcaption></figure>
     </div>
   </section>
 
-  <section class="block" id="glad">
-    <div class="label">Project</div>
-    <div class="project">
+  <section class="band p310" aria-labelledby="t-glad">
+    <div class="swatch"><div class="nm num">310<small>nm</small></div><div class="name">Blue</div><div class="stack">SiO₂ on Si</div></div>
+    <div class="work">
       <div>
-        <h2>GLAD Film Simulator</h2>
-        <p>The lab I work in grows films by sputtering, including nanostructured films made by glancing-angle deposition. I noticed nothing modeled the growth process itself, so I built a simple atom-by-atom simulation of it. Atoms fly in at an angle, stick on contact, and hop if the substrate is hot. Tilting the flux makes tall features shadow the area behind them, and the film breaks up into columns.</p>
+        <h2 id="t-glad">GLAD Film Simulator</h2>
+        <p>Sputtered atoms that arrive at a glancing angle get caught by every bump, and the film breaks up into tilted columns. This model grows a film one atom at a time with three rules: fly in at an angle, stick on contact, hop if the substrate is hot.</p>
+        <dl class="facts">
+          <div><dt>Model</dt><dd>2D atom-by-atom deposition with shadowing, surface mobility, and substrate rotation.</dd></div>
+          <div><dt>Checked</dt><dd>Density falls from 48% at normal incidence to 6% at 85°; columns lean toward the flux, a little under Tait’s rule.</dd></div>
+        </dl>
+        <a class="open" href="glad.html">Open the simulator <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
-      <div class="what">
-        <div><h4>The model</h4><p>Three rules per atom: fly, stick, hop. Columns, posts, and zigzags emerge on their own from shadowing.</p></div>
-        <div><h4>The check</h4><p>Density falls from 48% at normal incidence to 6% at 85°, and columns lean toward the flux, a bit under Tait's rule as grid models usually do.</p></div>
-        <div><h4>The use</h4><p>Trying angles, temperatures, and rotation in seconds before spending hours of chamber time.</p></div>
-      </div>
-      <div class="actions">
-        <a class="btn" href="glad.html">Open the simulator</a>
-        <div class="tags"><span class="tag">JavaScript</span><span class="tag">Simulation</span><span class="tag">Thin-film growth</span><span class="tag">PVD</span></div>
-      </div>
+      <figure class="preview"><canvas id="pv-glad" width="640" height="480" aria-label="Cross-section of a film grown at 85 degrees, showing tilted columns"></canvas><figcaption>Live: a film grown at 85°, fresh every visit.</figcaption></figure>
     </div>
   </section>
 
-  <section class="block" id="experience">
-    <div class="label">Experience</div>
-    <div class="log">
-      <article class="entry">
-        <div class="meta"><span class="status now">Current</span><span class="when">Fall 2026</span></div>
-        <h3>Undergraduate researcher, thin films lab</h3>
-        <p>Getting hands-on time with vacuum deposition and annealing, and seeing how substrate orientation shapes film growth.</p>
-      </article>
-      <article class="entry">
-        <div class="meta"><span class="status done">Completed</span><span class="when">Computational</span></div>
-        <h3>Polymer chain modeling</h3>
-        <p>Introductory molecular modeling of basic polymer chains, visualized in OVITO with LAMMPS. It showed me how simulation connects to structure, and made me want hands-on lab time to match it.</p>
-      </article>
+  <section class="band p426" aria-labelledby="t-rho">
+    <div class="swatch"><div class="nm num">426<small>nm</small></div><div class="name">Carnation pink</div><div class="stack">SiO₂ on Si</div></div>
+    <div class="work">
+      <div>
+        <h2 id="t-rho">Thin-Wire Resistivity</h2>
+        <p>Copper is the best wiring metal in bulk, but in a film a few nanometers thick its electrons keep hitting surfaces and grain boundaries, and its resistance climbs. This explorer models that size effect for six chip-wiring metals and shows where copper stops being the best choice.</p>
+        <dl class="facts">
+          <div><dt>Model</dt><dd>Fuchs–Sondheimer surface scattering plus Mayadas–Shatzkes grain-boundary scattering.</dd></div>
+          <div><dt>Checked</dt><dd>Matches the thick-film limit 1 + 3λ(1−p)/8d to within 0.2%; fits recover known parameters.</dd></div>
+        </dl>
+        <a class="open" href="resistivity.html">Open the explorer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+      </div>
+      <figure class="preview"><canvas id="pv-rho" width="640" height="480" aria-label="Resistivity versus film thickness for copper and ruthenium"></canvas><figcaption>Live: copper and ruthenium, diffuse surfaces, R = 0.4.</figcaption></figure>
     </div>
   </section>
 
-  <section class="block" id="next">
-    <div class="label">Looking for</div>
+  <section class="band p476" id="experience" aria-labelledby="t-exp">
+    <div class="swatch"><div class="nm num">476<small>nm</small></div><div class="name">Violet</div><div class="stack">SiO₂ on Si</div></div>
     <div>
-      <h2>Fab experience</h2>
-      <p>I'm looking for summer 2027 internships in module, process, or metrology engineering, where I can get hands-on time with lithography, deposition, and characterization tools at production scale.</p>
+      <h2 id="t-exp">Experience</h2>
+      <div class="log">
+        <article>
+          <h3>Thin films lab</h3>
+          <div class="when">Fall 2026 – now</div>
+          <p>Undergraduate researcher in a sputter-deposition lab. Hands-on time with vacuum deposition and annealing, and seeing how substrate orientation shapes film growth.</p>
+        </article>
+        <article>
+          <h3>Polymer chain modeling</h3>
+          <p>Introductory molecular modeling of basic polymer chains with LAMMPS, visualized in OVITO.</p>
+        </article>
+      </div>
     </div>
   </section>
 
-  <footer>Winston Kan · Built with HTML, CSS, and JavaScript · Crystal drawings rendered live by the Substrate Plane Viewer</footer>
-</div>
+  <section class="band p600 close" aria-labelledby="t-next">
+    <div class="swatch"><div class="nm num">600<small>nm</small></div><div class="name">Carnation pink</div><div class="stack">SiO₂ on Si · the chart repeats</div></div>
+    <div>
+      <h2 id="t-next">Looking for fab time</h2>
+      <p>I’m looking for summer 2027 internships in module, process, or metrology engineering: hands-on time with deposition, lithography, and characterization at production scale.</p>
+    </div>
+  </section>
+</main>
 
+<footer>
+  <span>Every color on this page is calculated from the oxide thickness printed beside it: thin-film interference of SiO₂ on silicon, seen in daylight.</span>
+  <span>Color names: Rogue Valley Microdevices thermal oxide chart.</span>
+</footer>
+
+<script src="filmcolor.js"></script>
 <script src="lattice.js"></script>
+<script src="glad.js"></script>
+<script src="resistivity.js"></script>
 <script>
-  const silicon = Lattice.makeLattice('cubic', 5.431);
-  Lattice.attachViewer(document.getElementById('hero'), () => ({
-    lat: silicon,
-    planes: [{ hkl: [1, 1, 1], color: '--plane-a', showFamily: true }],
-    opts: { fill: 0.42 },
-  }), { yaw: -0.6, pitch: 0.35, autoSpin: true });
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- the wafer and the chart strip ----------
+  const input = $('thick'), disc = $('disc');
+  function setThickness(t) {
+    t = Math.round(t);
+    disc.style.fill = FilmColor.hex(t);
+    $('nmOut').textContent = t + ' nm';
+    $('nameOut').textContent = FilmColor.chartName(t);
+    $('marker').style.left = (t / 6) + '%';
+    input.value = t;
+  }
+  input.addEventListener('input', () => setThickness(+input.value));
+  setThickness(125);
+
+  // one authored moment: the film grows from bare silicon to 125 nm on arrival
+  if (!reduce) {
+    const t0 = performance.now(), dur = 1700;
+    setThickness(0);
+    const grow = (now) => {
+      if (input.dataset.touched) return;
+      const k = Math.min(1, (now - t0) / dur);
+      const ease = 1 - Math.pow(2, -10 * k); // exponential ease-out
+      setThickness(125 * (k === 1 ? 1 : ease));
+      if (k < 1) requestAnimationFrame(grow);
+    };
+    input.addEventListener('pointerdown', () => (input.dataset.touched = '1'), { once: true });
+    input.addEventListener('keydown', () => (input.dataset.touched = '1'), { once: true });
+    requestAnimationFrame(grow);
+  }
+
+  // ---------- live previews (drawn in ink on each band's film color) ----------
+  const ink = '#17141f';
+  function sized(canvas) {
+    const dpr = window.devicePixelRatio || 1;
+    const w = canvas.clientWidth, h = canvas.clientHeight;
+    canvas.width = Math.round(w * dpr); canvas.height = Math.round(h * dpr);
+    const ctx = canvas.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { ctx, w, h };
+  }
+
+  // Substrate Plane Viewer: lattice.js reads --cell, --fg, --muted and the plane color from the root
+  document.documentElement.style.setProperty('--cell', 'rgba(23,20,31,.55)');
+  document.documentElement.style.setProperty('--fg', ink);
+  document.documentElement.style.setProperty('--muted', 'rgba(23,20,31,.7)');
+  document.documentElement.style.setProperty('--plane-a', ink);
+  document.documentElement.style.setProperty('--font-mono', 'Schibsted Grotesk');
+  const si = Lattice.makeLattice('cubic', 5.431);
+  Lattice.attachViewer($('pv-viewer'), () => ({ lat: si, planes: [{ hkl: [1, 1, 1], color: '--plane-a', showFamily: true }], opts: { fill: 0.4 } }), { yaw: -0.6, pitch: 0.35, autoSpin: true });
+
+  // GLAD: grow a small film right here and draw it
+  function drawGlad() {
+    const cv = $('pv-glad'); const { ctx, w, h } = sized(cv);
+    const W = 200, H = 150;
+    const sim = Glad.createSim({ width: W, height: H, angle: 85, seed: (Math.random() * 1e9) | 0 });
+    while (sim.step(1000));
+    const off = document.createElement('canvas'); off.width = W; off.height = H;
+    const o = off.getContext('2d'); const img = o.createImageData(W, H);
+    for (let i = 0; i < sim.count; i++) {
+      const idx = sim.order[i], x = idx % W, y = (idx / W) | 0, p = ((H - 1 - y) * W + x) * 4;
+      img.data[p] = 23; img.data[p + 1] = 20; img.data[p + 2] = 31; img.data[p + 3] = 255;
+    }
+    o.putImageData(img, 0, 0);
+    ctx.clearRect(0, 0, w, h);
+    ctx.imageSmoothingEnabled = false;
+    ctx.drawImage(off, 0, 0, w, h - 4);
+    ctx.fillStyle = ink; ctx.fillRect(0, h - 4, w, 4);
+  }
+
+  // Resistivity: copper vs ruthenium, 3–100 nm
+  function drawRho() {
+    const cv = $('pv-rho'); const { ctx, w, h } = sized(cv);
+    const M = Object.fromEntries(Resistivity.METALS.map((m) => [m.id, m]));
+    const opts = { p: 0, R: 0.4 };
+    const pad = { l: 40, r: 34, t: 14, b: 34 };
+    const dMin = 3, dMax = 100, yMax = 30;
+    const X = (d) => pad.l + (Math.log10(d / dMin) / Math.log10(dMax / dMin)) * (w - pad.l - pad.r);
+    const Y = (r) => h - pad.b - (r / yMax) * (h - pad.t - pad.b);
+    ctx.clearRect(0, 0, w, h);
+    ctx.font = '12px "Schibsted Grotesk", Arial, sans-serif';
+    ctx.fillStyle = 'rgba(23,20,31,.84)'; ctx.strokeStyle = 'rgba(23,20,31,.18)'; ctx.lineWidth = 1;
+    for (const r of [0, 10, 20, 30]) { ctx.beginPath(); ctx.moveTo(pad.l, Y(r)); ctx.lineTo(w - pad.r, Y(r)); ctx.stroke(); ctx.textAlign = 'right'; ctx.fillText(r, pad.l - 8, Y(r) + 4); }
+    ctx.textAlign = 'center';
+    for (const d of [3, 10, 30, 100]) ctx.fillText(d + ' nm', X(d), h - 12);
+    ctx.save(); ctx.translate(12, pad.t + (h - pad.t - pad.b) / 2); ctx.rotate(-Math.PI / 2); ctx.fillText('μΩ·cm', 0, 0); ctx.restore();
+    const line = (metal, dash) => {
+      ctx.beginPath(); ctx.setLineDash(dash); ctx.strokeStyle = ink; ctx.lineWidth = 2.5;
+      for (let i = 0; i <= 120; i++) { const d = dMin * Math.pow(dMax / dMin, i / 120); const r = Resistivity.resistivity(metal, d, opts); i ? ctx.lineTo(X(d), Y(r)) : ctx.moveTo(X(d), Y(r)); }
+      ctx.stroke(); ctx.setLineDash([]);
+    };
+    line(M.Cu, []); line(M.Ru, [7, 5]);
+    ctx.fillStyle = ink; ctx.font = '600 13px "Schibsted Grotesk", Arial, sans-serif'; ctx.textAlign = 'left';
+    ctx.fillText('Copper', X(55), Y(Resistivity.resistivity(M.Cu, 55, opts)) - 10);
+    ctx.fillText('Ruthenium', X(40), Y(Resistivity.resistivity(M.Ru, 40, opts)) - 10);
+  }
+
+  drawGlad(); drawRho();
+  let rt = 0;
+  window.addEventListener('resize', () => { clearTimeout(rt); rt = setTimeout(() => { drawGlad(); drawRho(); }, 150); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawRho);
+})();
 </script>
 </body>
 </html>

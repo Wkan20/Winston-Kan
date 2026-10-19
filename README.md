@@ -1,6 +1,6 @@
 # Winston Kan — Portfolio
 
-My portfolio site, plus the main project on it: an interactive viewer for crystal planes in thin-film substrates.
+My portfolio site and the simulations on it. The page is designed as a thermal-oxide color chart: every color is the computed interference color of an SiO₂ film on silicon at the thickness printed beside it.
 
 - **`index.html`** — the portfolio page
 - **`visualizer.html`** — the Substrate Plane Viewer
@@ -8,6 +8,9 @@ My portfolio site, plus the main project on it: an interactive viewer for crysta
 - **`LEARNING.md`** — notes on the concepts and how the code works
 - **`glad.html`** + **`glad.js`** — the GLAD Film Simulator, an atom-by-atom model of thin-film growth
 - **`GLAD.md`** — how the simulator works, what it shows, and what it leaves out
+- **`resistivity.html`** + **`resistivity.js`** — Thin-Wire Resistivity, how metal films conduct worse as they get thinner
+- **`RESISTIVITY.md`** — the physics, the equations, what was checked, and what the model leaves out
+- **`filmcolor.js`** — computes the real interference color of an oxide film on silicon; every color on the portfolio page comes from it
 
 ## The Substrate Plane Viewer
 
