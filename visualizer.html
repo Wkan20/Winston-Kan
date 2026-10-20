@@ -21,6 +21,8 @@
   --cell: rgba(23, 20, 31, .5);
   --plane-a: #2a78d6;   /* plane A: series blue */
   --plane-b: #eb6834;   /* plane B: series orange */
+  --epi: #12867f;       /* film atom sitting on a substrate site */
+  --off: #eb6834;       /* film atom sitting off a site */
   --focus: #17141f;
   --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
@@ -95,6 +97,13 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 .explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; text-wrap: balance; }
 .explain p { margin: 0; color: var(--muted); max-width: 60ch; }
 .explain code { font-family: var(--font-body); font-weight: 600; color: var(--fg); }
+.tmpl { margin-top: 36px; border-top: 1px solid var(--line); padding-top: 26px; }
+.sectionhead { font: 800 30px/1 var(--font-display); text-transform: uppercase; margin: 0 0 6px; }
+.tmpl .sub { margin: 0 0 14px; color: var(--muted); max-width: 80ch; font-size: 15px; }
+.tbench { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .tbench { grid-template-columns: 1fr; } }
+.tstage { background: var(--surface); border: 1px solid var(--line); border-radius: 4px; }
+#tcv { display: block; width: 100%; aspect-ratio: 3 / 2; }
 .refs { border-top: 1px solid var(--rule); margin-top: 28px; padding-top: 18px; padding-bottom: 40px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); max-width: 110ch; }
 .refs h2 { font: 700 15px var(--font-body); color: var(--ink); margin: 0 0 6px; text-transform: none; letter-spacing: 0; }
 .refs ol { margin: 0 0 12px; padding-left: 1.3em; }
@@ -108,7 +117,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   <div class="head">
     <div>
       <h1>Substrate Plane Viewer</h1>
-      <p class="lede">See which crystal face a substrate is cut on. Pick a material and a plane, drag the cell to rotate it, and compare two planes to get the angle between them. For directions [uvw], see <a href="directions.html">Crystal Directions</a>.</p>
+      <p class="lede">See which crystal face a substrate is cut on. Pick a material and a plane, drag the cell to rotate it, and compare two planes to get the angle between them. Below, see how a film lines up on the surface. For drawing [uvw] and (hkl) step by step, see <a href="directions.html">Directions &amp; Planes</a>.</p>
     </div>
     <div class="bandswatch"><div class="nm">225<small>nm</small></div><div>Gold · SiO₂ on Si</div></div>
   </div>
@@ -160,6 +169,26 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       </fieldset>
     </div>
   </div>
+
+  <section class="tmpl" aria-labelledby="t-tmpl">
+    <h2 class="sectionhead" id="t-tmpl">How a film templates on it</h2>
+    <p class="sub">Looking straight down at the surface. Gray: the substrate’s top atoms. Dots: the first layer of film, teal when it sits on a substrate site and orange when it sits off one.</p>
+    <div class="tbench">
+      <div class="tstage"><canvas id="tcv" aria-label="Top view of film atoms on the substrate surface"></canvas></div>
+      <div class="panel">
+        <fieldset>
+          <legend>Film on substrate</legend>
+          <div class="chips" id="pairs" style="margin-top:4px"></div>
+          <label class="toggle" style="margin-top:12px"><input type="checkbox" id="strain"> Film stretches to fit (very thin film)</label>
+          <p class="note" id="tnote"></p>
+        </fieldset>
+        <fieldset>
+          <legend>Fit</legend>
+          <table class="readout"><tbody id="tread"></tbody></table>
+        </fieldset>
+      </div>
+    </div>
+  </section>
 
   <section class="explain">
     <div>
@@ -323,6 +352,158 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       state.showB && !isZero(state.B) ? { hkl: state.B, color: '--plane-b', showFamily: state.family } : null,
     ],
   }), { yaw: -0.55, pitch: 0.28 });
+})();
+</script>
+<script>
+// Templating: a top view of the first film layer on the substrate's surface.
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const R3 = Math.sqrt(3), D = Math.PI / 180;
+  // nets: spacing (Å) and shape of the repeating surface pattern
+  const PAIRS = [
+    { id: 'momgo', label: 'Mo on MgO(001)', mat: 'mgo', plane: [0, 0, 1],
+      sub: { shape: 'checker', a: 4.212 },
+      film: { shape: 'square', a: 3.147, rot: 45, name: 'molybdenum' },
+      match: 4.212 / Math.SQRT2, turned: true,
+      note: 'Molybdenum turns 45° so its atoms sit over the oxygen atoms (dark). The leftover 5.7% is small enough that a hot film lines up: epitaxy.' },
+    { id: 'gesi', label: 'Ge on Si(001)', mat: 'si', plane: [0, 0, 1],
+      sub: { shape: 'square', a: 5.431 / Math.SQRT2, rot: 45 },
+      film: { shape: 'square', a: 5.658 / Math.SQRT2, rot: 45, name: 'germanium' },
+      match: 5.431 / Math.SQRT2,
+      note: 'Same crystal structure, 4.2% bigger. Thin layers stretch to fit; thick ones relax by forming misfit defects.' },
+    { id: 'ganzno', label: 'GaN on ZnO(0001)', mat: 'zno', plane: [0, 0, 1],
+      sub: { shape: 'hex', a: 3.250, rot: 0 },
+      film: { shape: 'hex', a: 3.189, rot: 0, name: 'gallium' },
+      match: 3.250,
+      note: 'Same hexagonal structure and only 1.9% apart, so the film lines up almost perfectly.' },
+    { id: 'gansap', label: 'GaN on sapphire (C-plane)', mat: 'sapphire', plane: [0, 0, 1],
+      sub: { shape: 'hex', a: 4.759 / R3, rot: 30, cell: 4.759 },
+      film: { shape: 'hex', a: 3.189, rot: 30, name: 'gallium' },
+      match: 4.759 / R3, turned: true,
+      note: 'GaN turns 30° from the sapphire cell to sit over its oxygen atoms, but is still 16% too big. Growers first put down a thin buffer layer (such as AlN) to bridge the gap.' },
+    { id: 'glass', label: 'Mo on glass', mat: null,
+      sub: { shape: 'random' },
+      film: { shape: 'grains', a: 3.147, name: 'molybdenum' },
+      match: null,
+      note: 'Glass is amorphous: no pattern to copy. Each grain of film starts on its own and points its own way (one color per grain).' },
+  ];
+  let cur = PAIRS[0], strain = false;
+  const cv = $('tcv'), ctx = cv.getContext('2d');
+  const rnd = (i, k = 1) => { const x = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return x - Math.floor(x); };
+
+  function net(shape, a, rot, Wa, Ha) {
+    const pts = [], r = rot * D;
+    const v1 = [a, 0], v2 = shape === 'hex' ? [a / 2, a * R3 / 2] : [0, a];
+    const n = Math.ceil(Math.hypot(Wa, Ha) / a) + 2;
+    for (let i = -n; i <= n; i++) for (let j = -n; j <= n; j++) {
+      const x = i * v1[0] + j * v2[0], y = i * v1[1] + j * v2[1];
+      const p = [x * Math.cos(r) - y * Math.sin(r), x * Math.sin(r) + y * Math.cos(r)];
+      if (Math.abs(p[0]) <= Wa / 2 + a && Math.abs(p[1]) <= Ha / 2 + a) pts.push({ p, sp: 0 });
+    }
+    return pts;
+  }
+  function substrate(Wa, Ha) {
+    const s = cur.sub;
+    if (s.shape === 'checker') {
+      const pts = [], h = s.a / 2, n = Math.ceil(Math.max(Wa, Ha) / h);
+      for (let i = -n; i <= n; i++) for (let j = -n; j <= n; j++) pts.push({ p: [i * h, j * h], sp: Math.abs(i + j) % 2 });
+      return pts;
+    }
+    if (s.shape === 'random') {
+      const pts = [];
+      // random but never overlapping, like atoms in a glass
+      for (let i = 0; i < 3000 && pts.length < 400; i++) {
+        const q = [(rnd(i) - 0.5) * (Wa + 6), (rnd(i, 2) - 0.5) * (Ha + 6)];
+        if (pts.every((r) => Math.hypot(r.p[0] - q[0], r.p[1] - q[1]) > 2.4)) pts.push({ p: q, sp: 0 });
+      }
+      return pts;
+    }
+    return net(s.shape, s.a, s.rot, Wa, Ha);
+  }
+  function film(Wa, Ha) {
+    const f = cur.film;
+    if (f.shape === 'grains') {
+      const seeds = [[-9, -4], [6, 5], [10, -6], [-4, 7], [-13, 6], [0, -8]], pts = [];
+      seeds.forEach((c, g) => {
+        const turn = rnd(g, 9) * 90;
+        net('square', f.a, turn, Wa * 1.6, Ha * 1.6).forEach((q) => {
+          const p = [q.p[0] + c[0], q.p[1] + c[1]];
+          if (Math.abs(p[0]) > Wa / 2 + 2 || Math.abs(p[1]) > Ha / 2 + 2) return;
+          let best = Infinity, bi = 0; seeds.forEach((d, k) => { const dd = Math.hypot(p[0] - d[0], p[1] - d[1]); if (dd < best) { best = dd; bi = k; } });
+          if (bi === g) pts.push({ p, g });
+        });
+      });
+      return pts;
+    }
+    return net(f.shape, strain ? cur.match : f.a, f.rot, Wa, Ha);
+  }
+  function draw() {
+    const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight; if (!W) return;
+    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const Wa = W < 500 ? 22 : 34, Ha = Wa * H / W, k = W / Wa;
+    const X = (p) => [W / 2 + p[0] * k, H / 2 - p[1] * k];
+    const sub = substrate(Wa, Ha);
+    const subCol = ['#8f8aa6', '#cfcbe0'];
+    sub.forEach((q) => { const [x, y] = X(q.p); ctx.fillStyle = subCol[q.sp]; ctx.beginPath(); ctx.arc(x, y, (q.sp ? 0.42 : 0.62) * k, 0, 6.29); ctx.fill(); });
+    if (cur.sub.cell) {
+      const a = cur.sub.cell, v0 = [a, 0], v1 = [a / 2, a * R3 / 2];
+      const corners = [[0, 0], v0, [v0[0] + v1[0], v1[1]], v1].map(X);
+      ctx.strokeStyle = 'rgba(23,20,31,.6)'; ctx.setLineDash([5, 4]); ctx.lineWidth = 1.5; ctx.beginPath();
+      corners.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); ctx.closePath(); ctx.stroke(); ctx.setLineDash([]);
+      ctx.fillStyle = 'rgba(23,20,31,.8)'; ctx.font = '12px "Schibsted Grotesk", Arial, sans-serif'; ctx.fillText('sapphire cell', corners[1][0] + 6, corners[1][1] + 4);
+    }
+    const fm = film(Wa, Ha);
+    const tol = 0.22 * (cur.match || 3);
+    const sites = sub.filter((s) => !(cur.sub.shape === 'checker' && s.sp));
+    fm.forEach((q) => {
+      let col;
+      if (cur.film.shape === 'grains') col = ['#12867f', '#2a78d6', '#7d4aa6', '#b07a3a', '#c0392b', '#3f7d3a'][q.g % 6];
+      else {
+        let best = Infinity;
+        for (const s of sites) { const d = Math.hypot(s.p[0] - q.p[0], s.p[1] - q.p[1]); if (d < best) best = d; }
+        col = best < tol ? css('--epi') : css('--off');
+      }
+      const [x, y] = X(q.p); ctx.fillStyle = col; ctx.globalAlpha = 0.92;
+      ctx.beginPath(); ctx.arc(x, y, 0.3 * k, 0, 6.29); ctx.fill(); ctx.globalAlpha = 1;
+    });
+    ctx.fillStyle = 'rgba(251,251,253,.88)'; ctx.fillRect(8, H - 32, 5 * k + 46, 24);
+    ctx.strokeStyle = css('--fg'); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(14, H - 20); ctx.lineTo(14 + 5 * k, H - 20); ctx.stroke();
+    ctx.fillStyle = css('--fg'); ctx.font = '12px "Schibsted Grotesk", Arial, sans-serif'; ctx.fillText('5 Å', 20 + 5 * k, H - 16);
+  }
+  function readout() {
+    [...$('pairs').children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.id === cur.id)));
+    $('tnote').textContent = cur.note;
+    $('strain').disabled = !cur.match; $('strain').parentElement.style.opacity = cur.match ? 1 : 0.4;
+    if (!cur.match) { strain = false; $('strain').checked = false; }
+    const rows = [];
+    if (cur.match) {
+      const m = (cur.film.a - cur.match) / cur.match;
+      rows.push(['Substrate site spacing', `${cur.match.toFixed(3)} Å`]);
+      rows.push([`Film spacing (${cur.film.name})`, strain ? `${cur.match.toFixed(3)} Å (stretched)` : `${cur.film.a.toFixed(3)} Å`]);
+      if (cur.turned) rows.push(['Film turned', `${cur.film.rot}°`]);
+      rows.push(['Mismatch', `${m > 0 ? '+' : ''}${(m * 100).toFixed(1)}%`]);
+      rows.push(['Lines up?', strain ? 'yes, but the film is strained' : Math.abs(m) < 0.03 ? 'yes, almost perfectly' : Math.abs(m) < 0.08 ? 'yes, with strain or defects' : 'not directly: needs a buffer']);
+    } else rows.push(['Lines up?', 'no: random grains']);
+    $('tread').innerHTML = rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
+  }
+  function select(p, sync) {
+    cur = p; readout(); draw();
+    if (sync && p.mat) {
+      const m = $('mat'); m.value = p.mat; m.dispatchEvent(new Event('change'));
+      ['h', 'k', 'l'].forEach((L, i) => { const el = $('A' + L); if (el) el.value = p.plane[i]; });
+      const l = $('Al'); if (l) l.dispatchEvent(new Event('input'));
+    }
+  }
+  PAIRS.forEach((p) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.id = p.id; b.textContent = p.label;
+    b.addEventListener('click', () => select(p, true));
+    $('pairs').appendChild(b);
+  });
+  $('strain').addEventListener('change', (e) => { strain = e.target.checked; readout(); draw(); });
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(draw).observe(cv);
+  select(PAIRS[0], false);
 })();
 </script>
 </body>

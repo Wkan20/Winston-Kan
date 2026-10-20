@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Crystal Directions</title>
+<title>Directions and Planes</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <style>
 @font-face { font-family: "Big Shoulders Display"; src: url("fonts/big-shoulders-display.woff") format("woff"); font-weight: 100 900; font-display: swap; }
@@ -94,8 +94,9 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 .note { font-size: 14px; margin: 10px 0 0; }
 .note:empty { display: none; }
 
-.explain { margin-top: 36px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 36px; border-top: 1px solid var(--line); padding-top: 30px; }
-@media (max-width: 860px) { .explain { grid-template-columns: 1fr; } }
+.explain { margin-top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 36px; border-top: 1px solid var(--line); padding-top: 30px; }
+@media (max-width: 1100px) { .explain { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .explain { grid-template-columns: 1fr; } }
 .explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; text-wrap: balance; }
 .explain p { margin: 0; color: var(--muted); max-width: 60ch; }
 .explain code { font-family: var(--font-body); font-weight: 600; color: var(--fg); }
@@ -105,6 +106,9 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 .refs li { margin: 0 0 3px; }
 .refs .disclaimer { margin: 0; }
 .bar { text-decoration: overline; }
+.modes { display: grid; grid-template-columns: 1fr 1fr; border: 1px solid var(--fg); border-radius: 4px; overflow: hidden; }
+.modes button { font: 700 14px var(--font-body); padding: 10px; border: 0; background: var(--surface); color: var(--fg); cursor: pointer; }
+.modes button[aria-pressed="true"] { background: var(--fg); color: var(--surface); }
 .steps { margin: 14px 0 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 6px; }
 .steps li { counter-increment: s; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; font-size: 14px; color: var(--muted); }
 .steps li::before { content: counter(s); font: 800 17px/1.2 var(--font-display); color: var(--fg); }
@@ -121,8 +125,8 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   <div class="row"><a href="index.html"><b>Winston Kan</b></a><span>Materials Science &amp; Engineering, RPI ’29</span></div>
   <div class="head">
     <div>
-      <h1>Crystal Directions</h1>
-      <p class="lede">Learn to read [uvw]. Pick a direction and watch it built step by step inside a cubic unit cell, then see which atoms sit along it.</p>
+      <h1>Directions &amp; Planes</h1>
+      <p class="lede">Learn to read [uvw] and (hkl). Pick a direction or a plane and watch it built step by step inside a cubic unit cell, then see which atoms sit on it.</p>
     </div>
     <div class="bandswatch"><div class="nm">350<small>nm</small></div><div>Green · SiO₂ on Si</div></div>
   </div>
@@ -143,6 +147,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     </div>
 
     <div class="panel">
+      <div class="modes" role="group" aria-label="What to draw"><button type="button" data-mode="dir" aria-pressed="true">Direction [uvw]</button><button type="button" data-mode="plane" aria-pressed="false">Plane (hkl)</button></div>
       <fieldset>
         <legend>Crystal structure</legend>
         <div class="chips" id="structs" style="margin-top:4px"></div>
@@ -151,7 +156,15 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
         </div>
       </fieldset>
 
-      <fieldset>
+      <fieldset id="fsP" hidden>
+        <legend>Plane</legend>
+        <div class="plane-head"><span class="big" id="nameP" style="color:var(--dir-a)"></span></div>
+        <div class="idx cubic" id="idxP"></div>
+        <div class="chips" id="chipsP"></div>
+        <p class="note" id="noteP"></p>
+      </fieldset>
+
+      <fieldset id="fsA">
         <legend>Direction A</legend>
         <div class="plane-head"><span class="big" id="nameA" style="color:var(--dir-a)"></span>
           <label class="toggle"><input type="checkbox" id="family"> Show the family</label></div>
@@ -160,7 +173,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
         <p class="note" id="noteA"></p>
       </fieldset>
 
-      <fieldset>
+      <fieldset id="fsB">
         <legend>Direction B</legend>
         <div class="plane-head"><span class="big" id="nameB" style="color:var(--dir-b)"></span>
           <label class="toggle"><input type="checkbox" id="showB"> Show</label></div>
@@ -182,6 +195,10 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     <div>
       <h2>Negatives and fractions</h2>
       <p>A bar over a number means negative: [1̄10] goes back along x. Indices are always the smallest whole numbers, so ½ along x and 1 along y is written [120]. To draw one, divide by the biggest index so the arrow fits in the cell.</p>
+    </div>
+    <div>
+      <h2>Reading (hkl)</h2>
+      <p>For a plane, flip the indices: (hkl) crosses the axes at 1/h, 1/k, 1/l. A 0 means it never crosses that axis. (111) cuts all three at 1; (110) cuts x and y and runs parallel to z.</p>
     </div>
     <div>
       <h2>Families and density</h2>
@@ -213,7 +230,41 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     fcc: { label: 'FCC', eg: 'copper, aluminum, nickel', a: 3.615, extra: [[0.5, 0.5, 0], [0.5, 0.5, 1], [0.5, 0, 0.5], [0.5, 1, 0.5], [0, 0.5, 0.5], [1, 0.5, 0.5]] },
   };
   const PRESETS = [[1, 0, 0], [1, 1, 0], [1, 1, 1], [-1, 1, 0], [2, 1, 0], [0, 1, 2]];
-  const state = { s: 'fcc', a: 3.615, A: [1, 1, 0], B: [1, 0, 0], showB: false, family: false };
+  const state = { mode: 'dir', s: 'fcc', a: 3.615, A: [1, 1, 0], B: [1, 0, 0], P: [1, 1, 1], showB: false, family: false };
+  const PPRESETS = [[1, 0, 0], [1, 1, 0], [1, 1, 1], [2, 0, 0], [-1, 1, 1], [0, 1, 2]];
+  const planeNote = (d) => '(' + d.map((v) => (v < 0 ? `<span class="bar">${-v}</span>` : v)).join('') + ')';
+  // ---------- planes: the textbook construction ----------
+  // origin moves to the far side along any axis with a negative index; the plane then
+  // crosses each axis at 1/index from that origin (never, if the index is 0)
+  function planeConstruct(P) {
+    const o = P.map((v) => (v < 0 ? 1 : 0));
+    const cut = P.map((v) => (v === 0 ? null : 1 / v));
+    return { o, cut, f: (q) => P[0] * (q[0] - o[0]) + P[1] * (q[1] - o[1]) + P[2] * (q[2] - o[2]) - 1 };
+  }
+  function planePoly(P) {
+    const pc = planeConstruct(P), pts = [];
+    for (const a of CORNERS) for (const b of CORNERS) {
+      const d = a.reduce((s, v, i) => s + Math.abs(v - b[i]), 0); if (d !== 1 || a.join() > b.join()) continue;
+      const fa = pc.f(a), fb = pc.f(b); if (Math.abs(fa - fb) < 1e-12) continue;
+      const t = fa / (fa - fb); if (t < -1e-9 || t > 1 + 1e-9) continue;
+      const q = a.map((v, i) => v + (b[i] - v) * t);
+      if (!pts.some((r) => Math.hypot(r[0] - q[0], r[1] - q[1], r[2] - q[2]) < 1e-6)) pts.push(q);
+    }
+    if (pts.length < 3) return pts;
+    const c = [0, 1, 2].map((i) => pts.reduce((s, q) => s + q[i], 0) / pts.length);
+    const n = P.map((v) => v / norm(P)), ref = Math.abs(n[2]) < 0.9 ? [0, 0, 1] : [1, 0, 0];
+    const u = [n[1] * ref[2] - n[2] * ref[1], n[2] * ref[0] - n[0] * ref[2], n[0] * ref[1] - n[1] * ref[0]];
+    const w = [n[1] * u[2] - n[2] * u[1], n[2] * u[0] - n[0] * u[2], n[0] * u[1] - n[1] * u[0]];
+    const ang = (q) => { const d = q.map((v, i) => v - c[i]); return Math.atan2(d[0] * w[0] + d[1] * w[1] + d[2] * w[2], d[0] * u[0] + d[1] * u[1] + d[2] * u[2]); };
+    return pts.sort((a, b) => ang(a) - ang(b));
+  }
+  // atoms per area on the plane: number density × spacing between neighboring lattice planes
+  function planarDensity(s, P) {
+    const r = reduceIdx(P), N = r[0] ** 2 + r[1] ** 2 + r[2] ** 2, sum = r[0] + r[1] + r[2];
+    const n = { sc: 1, bcc: 2, fcc: 4 }[s];
+    const half = (s === 'bcc' && Math.abs(sum) % 2 === 1) || (s === 'fcc' && !r.every((v) => Math.abs(v) % 2 === 1));
+    return n / Math.sqrt(N) * (half ? 0.5 : 1);   // × 1/a² → atoms per Å²
+  }
 
   // ---------- math ----------
   const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
@@ -261,7 +312,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   }
 
   // animation: 0 = nothing built yet … 4 = arrow drawn
-  let anim = 4, playing = false, t0 = 0;
+  let anim = 5, playing = false, t0 = 0;
   const cv = $('cv'), ctx = cv.getContext('2d');
   function arrow(a, b, color, w) {
     const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
@@ -271,6 +322,15 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     ctx.lineTo(b[0] - (10 + w * 1.5) * Math.cos(ang - 0.42), b[1] - (10 + w * 1.5) * Math.sin(ang - 0.42));
     ctx.lineTo(b[0] - (10 + w * 1.5) * Math.cos(ang + 0.42), b[1] - (10 + w * 1.5) * Math.sin(ang + 0.42));
     ctx.closePath(); ctx.fill(); ctx.lineCap = 'butt';
+  }
+  function markerFn(q, text, strong) {
+    ctx.fillStyle = css('--surface'); ctx.beginPath(); ctx.arc(q[0], q[1], 10, 0, 6.29); ctx.fill();
+    ctx.strokeStyle = css('--origin'); ctx.lineWidth = 3; ctx.stroke();
+    ctx.fillStyle = css('--origin'); ctx.beginPath(); ctx.arc(q[0], q[1], strong ? 5 : 3, 0, 6.29); ctx.fill();
+    ctx.font = '700 12px "Schibsted Grotesk", Arial, sans-serif'; ctx.textAlign = 'right';
+    const tw = ctx.measureText(text).width;
+    ctx.fillStyle = 'rgba(251,251,253,.9)'; ctx.fillRect(q[0] - 16 - tw - 4, q[1] - 22, tw + 8, 17);
+    ctx.fillStyle = css('--origin'); ctx.fillText(text, q[0] - 16, q[1] - 9); ctx.textAlign = 'left';
   }
   function draw() {
     const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
@@ -289,7 +349,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     });
     drawEdges(true);
     // atoms, far to near; atoms that sit on direction A are ringed
-    const C = zero(A) ? null : construct(A);
+    const C = zero(A) || state.mode === 'plane' ? null : construct(A);
     const onA = (q) => {
       if (!C) return false;
       const d = C.step, r = q.map((v, i) => v - C.start[i]), L2 = d[0] ** 2 + d[1] ** 2 + d[2] ** 2;
@@ -297,25 +357,26 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       if (t < -1e-6 || t > 1 + 1e-6) return false;
       return Math.hypot(r[0] - t * d[0], r[1] - t * d[1], r[2] - t * d[2]) < 1e-6;
     };
-    const atoms = [...CORNERS, ...STRUCTS[state.s].extra].map((q) => ({ q, pr: p(q), on: onA(q), extra: !CORNERS.includes(q) }));
+    const PC = state.mode === 'plane' && !zero(state.P) ? planeConstruct(state.P) : null;
+    const atoms = [...CORNERS, ...STRUCTS[state.s].extra].map((q) => ({ q, pr: p(q), on: PC ? Math.abs(PC.f(q)) < 1e-6 : onA(q), extra: !CORNERS.includes(q) }));
     atoms.sort((a, b) => b.pr[2] - a.pr[2]);
     const R = Math.min(W, H) * 0.035;
     for (const at of atoms) {
       ctx.beginPath(); ctx.arc(at.pr[0], at.pr[1], R, 0, 6.29);
       ctx.fillStyle = at.extra ? '#b9b3cf' : '#8f8aa6'; ctx.globalAlpha = 0.9; ctx.fill(); ctx.globalAlpha = 1;
-      if (at.on && anim >= 4) { ctx.strokeStyle = css('--dir-a'); ctx.lineWidth = 3; ctx.stroke(); }
+      if (at.on && anim >= (PC ? 4.5 : 4)) { ctx.strokeStyle = css('--dir-a'); ctx.lineWidth = 3; ctx.stroke(); }
     }
     drawEdges(false);
     // axes at the origin corner
     ctx.font = '600 13px "Schibsted Grotesk", Arial, sans-serif'; ctx.fillStyle = css('--muted');
     [['x', [1.18, 0, 0]], ['y', [0, 1.18, 0]], ['z', [0, 0, 1.18]]].forEach(([l, q]) => { const o = p([0, 0, 0]), e = p(q); ctx.strokeStyle = 'rgba(23,20,31,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(o[0], o[1]); ctx.lineTo(e[0], e[1]); ctx.stroke(); ctx.fillText(l, e[0] + 4, e[1] + 4); });
     // family: every equivalent direction, drawn from the cell center
-    if (state.family && !zero(A)) family(A).forEach((d) => {
+    if (state.mode === 'dir' && state.family && !zero(A)) family(A).forEach((d) => {
       const m = Math.max(...d.map(Math.abs)), e = d.map((v) => 0.5 + (v / m) * 0.5);
       ctx.globalAlpha = 0.45; arrow(p([0.5, 0.5, 0.5]), p(e), css('--dir-a'), 2); ctx.globalAlpha = 1;
     });
     // B
-    if (state.showB && !zero(state.B)) { const c = construct(state.B); arrow(p(c.start), p(c.end), css('--dir-b'), 4); }
+    if (state.mode === 'dir' && state.showB && !zero(state.B)) { const c = construct(state.B); arrow(p(c.start), p(c.end), css('--dir-b'), 4); }
     // the construction for A: start dot, the x / y / z legs, then the arrow
     if (C) {
       const leg = css('--leg');
@@ -324,15 +385,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       const s0 = p(C.start);
       // the origin (0,0,0), and the start point when a negative index moves it
       const o = p([0, 0, 0]), moved = C.start.some((v) => v !== 0);
-      const marker = (q, text, strong) => {
-        ctx.fillStyle = css('--surface'); ctx.beginPath(); ctx.arc(q[0], q[1], 10, 0, 6.29); ctx.fill();
-        ctx.strokeStyle = css('--origin'); ctx.lineWidth = 3; ctx.stroke();
-        ctx.fillStyle = css('--origin'); ctx.beginPath(); ctx.arc(q[0], q[1], strong ? 5 : 3, 0, 6.29); ctx.fill();
-        ctx.font = '700 12px "Schibsted Grotesk", Arial, sans-serif'; ctx.textAlign = 'right';
-        const tw = ctx.measureText(text).width;
-        ctx.fillStyle = 'rgba(251,251,253,.9)'; ctx.fillRect(q[0] - 16 - tw - 4, q[1] - 22, tw + 8, 17);
-        ctx.fillStyle = css('--origin'); ctx.fillText(text, q[0] - 16, q[1] - 9); ctx.textAlign = 'left';
-      };
+      const marker = markerFn;
 
       for (let i = 0; i < 3; i++) {
         const k = Math.max(0, Math.min(1, anim - i));
@@ -348,10 +401,49 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       marker(o, 'origin (0, 0, 0)', !moved);
       if (moved) marker(s0, `start (${C.start.join(', ')})`, true);
     }
+    // the construction for a plane: origin, the three axis crossings, then the plane
+    if (PC) {
+      const o3 = PC.o, leg = css('--leg');
+      for (let i = 0; i < 3; i++) {
+        const k = Math.max(0, Math.min(1, anim - 1 - i));
+        if (k <= 0) continue;
+        const cut = PC.cut[i];
+        const end = o3.slice();
+        if (cut === null) {
+          // index 0: the plane never crosses this axis; draw the axis fading off
+          end[i] += (o3[i] ? -1.15 : 1.15) * k;
+          const a = p(o3), b = p(end);
+          ctx.strokeStyle = 'rgba(42,120,214,.45)'; ctx.lineWidth = 2; ctx.setLineDash([2, 5]);
+          ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]);
+          if (k >= 1) { ctx.fillStyle = leg; ctx.font = '700 13px "Schibsted Grotesk", Arial, sans-serif'; ctx.fillText(`${'xyz'[i]}: ∞ (parallel)`, b[0] + 6, b[1] - 4); }
+          continue;
+        }
+        end[i] += cut * k;
+        const a = p(o3), b = p(end);
+        ctx.strokeStyle = leg; ctx.lineWidth = 2.5; ctx.setLineDash([6, 4]);
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]);
+        if (k >= 1) {
+          ctx.fillStyle = leg; ctx.beginPath(); ctx.arc(b[0], b[1], 6, 0, 6.29); ctx.fill();
+          ctx.font = '700 13px "Schibsted Grotesk", Arial, sans-serif'; ctx.fillText(`${'xyz'[i]} = ${fmtFrac(cut)}`, b[0] + 9, b[1] - 6);
+        }
+      }
+      if (anim >= 4) {
+        const poly = planePoly(state.P).map(p), k = Math.min(1, (anim - 4) * 2);
+        if (poly.length >= 3) {
+          ctx.beginPath(); poly.forEach((q, i) => (i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]))); ctx.closePath();
+          ctx.globalAlpha = 0.35 * k; ctx.fillStyle = css('--dir-a'); ctx.fill();
+          ctx.globalAlpha = k; ctx.strokeStyle = css('--dir-a'); ctx.lineWidth = 2.5; ctx.stroke(); ctx.globalAlpha = 1;
+        }
+      }
+      const moved = o3.some((v) => v !== 0);
+      markerFn(p([0, 0, 0]), 'origin (0, 0, 0)', !moved);
+      if (moved) markerFn(p(o3), `new origin (${o3.join(', ')})`, true);
+    }
   }
 
   // ---------- UI ----------
   function steps() {
+    if (state.mode === 'plane') return planeSteps();
     const A = state.A;
     if (zero(A)) { $('steps').innerHTML = '<li>All zero is not a direction.</li>'; return; }
     const C = construct(A), neg = A.some((v) => v < 0);
@@ -363,7 +455,24 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     ];
     $('steps').innerHTML = items.map((t, i) => `<li class="${playing && Math.floor(anim) === i ? 'on' : ''}"><span>${t}</span></li>`).join('');
   }
+  function planeSteps() {
+    const P = state.P;
+    if (zero(P)) { $('steps').innerHTML = '<li><span>All zero is not a plane.</span></li>'; return; }
+    const pc = planeConstruct(P), neg = P.some((v) => v < 0);
+    const cuts = pc.cut.map((c) => (c === null ? '∞' : fmtFrac(c)));
+    const items = [
+      `Pick the origin: <b>(${pc.o.join(', ')})</b>${neg ? '. A negative index moves it to the far side so the plane lands inside the cell.' : ', a corner of the cell.'}`,
+      `Flip each index (1 ÷ index) to get where the plane crosses each axis: <b>${cuts.join(', ')}</b>. A 0 gives ∞: the plane never crosses that axis; it runs parallel to it.`,
+      `Mark those crossings along x, y, z${neg ? ' (a negative one points back toward the cell)' : ''}.`,
+      `Join the marks with a flat plane. That is <b>${planeNote(P)}</b>.`,
+    ];
+    $('steps').innerHTML = items.map((t, i) => `<li class="${playing && (anim < 1 ? 0 : anim < 2 ? 1 : anim < 4 ? 2 : 3) === i ? 'on' : ''}"><span>${t}</span></li>`).join('');
+  }
   function readout() {
+    const isP = state.mode === 'plane';
+    $('fsP').hidden = !isP; $('fsA').hidden = isP; $('fsB').hidden = isP;
+    document.querySelectorAll('.modes button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.mode === state.mode)));
+    if (isP) return planeReadout();
     const A = state.A, rows = [], s = state.s, a = state.a;
     $('nameA').innerHTML = zero(A) ? '—' : note(A); $('legA').innerHTML = zero(A) ? '' : note(A);
     $('nameB').innerHTML = zero(state.B) ? '—' : note(state.B); $('legB').innerHTML = state.showB && !zero(state.B) ? note(state.B) : '';
@@ -383,7 +492,30 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     if (state.showB && !zero(state.B) && !zero(A)) rows.push(['Angle between A and B', `${angle(A, state.B).toFixed(2)}°`]);
     $('readout').innerHTML = rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
   }
+  function planeReadout() {
+    const P = state.P, rows = [], s = state.s, a = state.a;
+    $('nameP').innerHTML = zero(P) ? '—' : planeNote(P);
+    $('legA').innerHTML = zero(P) ? '' : planeNote(P); $('legB').innerHTML = '';
+    $('howName').innerHTML = zero(P) ? '' : planeNote(P);
+    [...$('chipsP').children].forEach((b, i) => b.setAttribute('aria-pressed', String(PPRESETS[i].every((v, j) => v === P[j]))));
+    [...$('structs').children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.s === s)));
+    if (!zero(P)) {
+      const r = reduceIdx(P);
+      rows.push([`Family {${r.map(Math.abs).sort((x, y) => y - x).join('')}}`, `${family(P).length / 2} orientations`]);
+      rows.push(['Spacing d (as in X-ray diffraction)', `${(a / norm(P)).toFixed(3)} Å`]);
+      const pd = planarDensity(s, P) / (a * a);
+      rows.push(['Planar density', `${(pd * 100).toFixed(2)} atoms/nm²`]);
+      const best = Math.max(...[[1, 0, 0], [1, 1, 0], [1, 1, 1]].map((d) => planarDensity(s, d)));
+      $('noteP').textContent = Math.abs(planarDensity(s, P) - best) < 1e-9 ? `Close-packed in ${STRUCTS[s].label}: the most crowded plane. Metals slip on these planes.` : '';
+    } else $('noteP').textContent = '';
+    $('readout').innerHTML = rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
+  }
   function idxInputs(which) {
+    if (which === 'P') {
+      $('idxP').innerHTML = ['h', 'k', 'l'].map((L, i) => `<div class="field"><label for="P${L}">${L}</label><input id="P${L}" type="number" step="1" min="-6" max="6" value="${state.P[i]}"></div>`).join('');
+      ['h', 'k', 'l'].forEach((L) => $('P' + L).addEventListener('input', () => { state.P = ['h', 'k', 'l'].map((x) => Math.max(-6, Math.min(6, parseInt($('P' + x).value, 10) || 0))); update(); }));
+      return;
+    }
     $('idx' + which).innerHTML = ['u', 'v', 'w'].map((L, i) => `<div class="field"><label for="${which}${L}">${L}</label><input id="${which}${L}" type="number" step="1" min="-6" max="6" value="${state[which][i]}"></div>`).join('');
     ['u', 'v', 'w'].forEach((L) => $(which + L).addEventListener('input', () => {
       state[which] = ['u', 'v', 'w'].map((x) => Math.max(-6, Math.min(6, parseInt($(which + x).value, 10) || 0)));
@@ -407,17 +539,24 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   $('la').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v > 0) { state.a = v; update(); } });
   $('family').addEventListener('change', (e) => { state.family = e.target.checked; update(); });
   $('showB').addEventListener('change', (e) => { state.showB = e.target.checked; update(); });
-  idxInputs('A'); idxInputs('B');
+  idxInputs('A'); idxInputs('B'); idxInputs('P');
+  PPRESETS.forEach((d) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.innerHTML = planeNote(d);
+    b.addEventListener('click', () => { state.P = d.slice(); idxInputs('P'); update(); play(); });
+    $('chipsP').appendChild(b);
+  });
+  document.querySelectorAll('.modes button').forEach((b) => b.addEventListener('click', () => { state.mode = b.dataset.mode; update(); play(); }));
 
   function play() {
-    if (reduce) { anim = 4; update(); return; }
+    if (reduce) { anim = 5; update(); return; }
     playing = true; anim = 0; t0 = performance.now();
   }
   $('play').addEventListener('click', play);
   function tick(now) {
     if (playing) {
-      anim = Math.min(4, (now - t0) / 900);
-      if (anim >= 4) playing = false;
+      const end = state.mode === 'plane' ? 5 : 4;
+      anim = Math.min(end, (now - t0) / 900);
+      if (anim >= end) playing = false;
       steps(); draw();
     }
     requestAnimationFrame(tick);
