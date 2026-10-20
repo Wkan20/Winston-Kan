@@ -21,6 +21,7 @@
   --dir-a: #12867f;     /* direction A: teal */
   --dir-b: #eb6834;     /* direction B: orange */
   --leg: #2a78d6;       /* the steps along x, y, z */
+  --origin: #c0392b;    /* origin and start point */
   --rule: rgba(23, 20, 31, .2);
   --ink: #17141f;
   --ink-soft: rgba(23, 20, 31, .84);
@@ -321,7 +322,18 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       const pts = [C.start.slice()];
       for (let i = 0; i < 3; i++) { const n = pts[pts.length - 1].slice(); n[i] += C.step[i]; pts.push(n); }
       const s0 = p(C.start);
-      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(s0[0], s0[1], 5, 0, 6.29); ctx.fill();
+      // the origin (0,0,0), and the start point when a negative index moves it
+      const o = p([0, 0, 0]), moved = C.start.some((v) => v !== 0);
+      const marker = (q, text, strong) => {
+        ctx.fillStyle = css('--surface'); ctx.beginPath(); ctx.arc(q[0], q[1], 10, 0, 6.29); ctx.fill();
+        ctx.strokeStyle = css('--origin'); ctx.lineWidth = 3; ctx.stroke();
+        ctx.fillStyle = css('--origin'); ctx.beginPath(); ctx.arc(q[0], q[1], strong ? 5 : 3, 0, 6.29); ctx.fill();
+        ctx.font = '700 12px "Schibsted Grotesk", Arial, sans-serif'; ctx.textAlign = 'right';
+        const tw = ctx.measureText(text).width;
+        ctx.fillStyle = 'rgba(251,251,253,.9)'; ctx.fillRect(q[0] - 16 - tw - 4, q[1] - 22, tw + 8, 17);
+        ctx.fillStyle = css('--origin'); ctx.fillText(text, q[0] - 16, q[1] - 9); ctx.textAlign = 'left';
+      };
+
       for (let i = 0; i < 3; i++) {
         const k = Math.max(0, Math.min(1, anim - i));
         if (k <= 0 || Math.abs(C.step[i]) < 1e-9) continue;
@@ -332,6 +344,9 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
         if (k >= 1) ctx.fillText(`${fmtFrac(C.step[i])} ${'xyz'[i]}`, (a[0] + b[0]) / 2 + 6, (a[1] + b[1]) / 2 - 6);
       }
       if (anim >= 3) { const k = Math.min(1, anim - 3), e = C.start.map((v, i) => v + C.step[i] * k); if (k > 0.05) arrow(s0, p(e), css('--dir-a'), 5); }
+      // markers last so nothing covers them
+      marker(o, 'origin (0, 0, 0)', !moved);
+      if (moved) marker(s0, `start (${C.start.join(', ')})`, true);
     }
   }
 
