@@ -21,6 +21,7 @@
   --cell: rgba(23, 20, 31, .5);
   --plane-a: #2a78d6;   /* plane A: series blue */
   --plane-b: #eb6834;   /* plane B: series orange */
+  --dir: #12867f;       /* direction arrow: teal */
   --focus: #17141f;
   --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
   --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
@@ -59,6 +60,7 @@ h1 { font: 900 clamp(46px, 8vw, 96px)/.86 var(--font-display); text-transform: u
 .legend { position: absolute; right: 14px; top: 12px; display: grid; gap: 4px; font: 700 17px var(--font-body); letter-spacing: .02em; text-align: right; }
 .legend .a { color: var(--plane-a); }
 .legend .b { color: var(--plane-b); }
+.legend .d { color: var(--dir); }
 
 .panel { display: grid; gap: 14px; min-width: 0; }
 fieldset { border: 1px solid var(--line); border-radius: 4px; background: var(--surface); margin: 0; padding: 12px 14px 14px; min-width: 0; }
@@ -90,8 +92,9 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 .note { font-size: 14px; margin: 10px 0 0; }
 .note:empty { display: none; }
 
-.explain { margin-top: 36px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 36px; border-top: 1px solid var(--line); padding-top: 30px; }
-@media (max-width: 860px) { .explain { grid-template-columns: 1fr; } }
+.explain { margin-top: 36px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px 36px; border-top: 1px solid var(--line); padding-top: 30px; }
+@media (max-width: 1100px) { .explain { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 640px) { .explain { grid-template-columns: 1fr; } }
 .explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; text-wrap: balance; }
 .explain p { margin: 0; color: var(--muted); max-width: 60ch; }
 .explain code { font-family: var(--font-body); font-weight: 600; color: var(--fg); }
@@ -108,7 +111,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   <div class="head">
     <div>
       <h1>Substrate Plane Viewer</h1>
-      <p class="lede">See which crystal face a substrate is cut on. Pick a material and a plane, drag the cell to rotate it, and compare two planes to get the angle between them.</p>
+      <p class="lede">See which crystal face a substrate is cut on. Pick a material, a plane, and a direction, then drag the cell to rotate it.</p>
     </div>
     <div class="bandswatch"><div class="nm">225<small>nm</small></div><div>Gold · SiO₂ on Si</div></div>
   </div>
@@ -118,7 +121,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   <div class="bench">
     <div class="stage">
       <canvas id="cv" aria-label="3D unit cell with the selected planes drawn through it"></canvas>
-      <div class="legend"><div class="a" id="legA"></div><div class="b" id="legB"></div></div>
+      <div class="legend"><div class="a" id="legA"></div><div class="b" id="legB"></div><div class="d" id="legD"></div></div>
       <div class="hint">drag to rotate</div>
     </div>
 
@@ -154,6 +157,17 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       </fieldset>
 
       <fieldset>
+        <legend>Direction</legend>
+        <div class="plane-head">
+          <span class="big" id="nameD" style="color:var(--dir)"></span>
+          <label class="toggle"><input type="checkbox" id="showD" checked> Show</label>
+        </div>
+        <div class="idx" id="idxD"></div>
+        <div class="chips" id="chipsD"></div>
+        <p class="note" id="noteD"></p>
+      </fieldset>
+
+      <fieldset>
         <legend>Readout</legend>
         <table class="readout"><tbody id="readout"></tbody></table>
         <label class="toggle" style="margin-top:10px"><input type="checkbox" id="family" checked> Show the whole family of parallel planes</label>
@@ -171,6 +185,10 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       <p>An amorphous substrate (like glass or thermal oxide) has no long-range order, so there is no pattern to copy and films come out amorphous or randomly oriented. Annealing can crystallize a film afterward, but only a crystalline substrate can set its orientation.</p>
     </div>
     <div>
+      <h2>Planes vs. directions</h2>
+      <p>Round brackets <code>(hkl)</code> name a plane; square brackets <code>[uvw]</code> name a direction, the arrow u·a + v·b + w·c. In cubic crystals [hkl] points straight out of (hkl). A direction lies in a plane when h·u + k·v + l·w = 0.</p>
+    </div>
+    <div>
       <h2>Reading the numbers</h2>
       <p><code>d</code> is the spacing between neighboring parallel planes, which is what X-ray diffraction measures. Hexagonal crystals use four indices <code>(h k i l)</code> with <code>i = −(h + k)</code>, so you type three and the fourth fills itself in.</p>
     </div>
@@ -185,7 +203,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   </ol>
   <p class="disclaimer"><b>Disclaimer.</b> This is a learning project by an undergraduate student, built with help from Claude, an AI assistant. The models are simplified versions of published ones, so the numbers show trends, not predictions for any real machine or process; please don’t use them for lab or fab decisions. Any mistakes are mine, and corrections are welcome. Not affiliated with or endorsed by RPI or any lab, company, or author cited here.</p>
 </section>
-<script src="lattice.js"></script>
+<script src="lattice.js?v=2"></script>
 <script>
 (function () {
   const MATERIALS = {
@@ -213,7 +231,21 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   };
 
   const $ = (id) => document.getElementById(id);
-  const state = { mat: '', a: 4.759, c: 12.991, A: [1, -1, 2], B: [0, 0, 1], showB: true, family: true };
+  // directions: for hexagonal, [U V W] are the independent Miller–Bravais indices (T = −(U+V))
+  const DIRS = {
+    cubic: [
+      { label: '[100]', uvw: [1, 0, 0], note: 'Along a cube edge.' },
+      { label: '[110]', uvw: [1, 1, 0], note: 'Across a face diagonal. Mo on MgO(001) lines up with Mo[100] along MgO[110]: the 45° turn.' },
+      { label: '[111]', uvw: [1, 1, 1], note: 'Through the body diagonal. Atoms touch along this line in bcc metals like Mo and W.' },
+      { label: '[001]', uvw: [0, 0, 1], note: 'Straight up out of a (001) wafer.' },
+    ],
+    hexagonal: [
+      { label: 'c-axis', uvw: [0, 0, 1], note: '[0001], the c-axis. Points straight out of C-plane.' },
+      { label: 'a-axis', uvw: [2, -1, 0], note: 'An a-direction, along a₁. Lies in C-plane.' },
+      { label: 'm-direction', uvw: [1, 0, 0], note: 'Points straight out of the M-plane. Lies in C-plane, 30° from the a-axis.' },
+    ],
+  };
+  const state = { mat: '', a: 4.759, c: 12.991, A: [1, -1, 2], B: [0, 0, 1], D: [0, 0, 1], showB: true, showD: true, family: true };
   let lat = Lattice.makeLattice('hexagonal', state.a, state.c);
   const type = () => MATERIALS[state.mat].type;
 
@@ -242,6 +274,30 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
         update();
       });
     }
+  }
+
+  function buildDirInputs() {
+    const box = $('idxD');
+    const hex = type() === 'hexagonal';
+    box.className = 'idx' + (hex ? '' : ' cubic');
+    const labels = hex ? ['U', 'V', 'T', 'W'] : ['u', 'v', 'w'];
+    box.innerHTML = labels.map((L) => `<div class="field"><label for="D${L}">${L.toLowerCase()}</label><input id="D${L}" type="number" step="1" min="-9" max="9"${L === 'T' ? ' readonly tabindex="-1"' : ''}></div>`).join('');
+    const ids = hex ? ['U', 'V', 'W'] : ['u', 'v', 'w'];
+    ids.forEach((L, i) => ($('D' + L).value = state.D[i]));
+    if (hex) $('DT').value = -(state.D[0] + state.D[1]);
+    ids.forEach((L) => $('D' + L).addEventListener('input', () => {
+      state.D = ids.map((x) => parseInt($('D' + x).value, 10) || 0);
+      if (hex) $('DT').value = -(state.D[0] + state.D[1]);
+      update();
+    }));
+  }
+  function buildDirChips() {
+    const box = $('chipsD'); box.innerHTML = '';
+    DIRS[type()].forEach((p) => {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = p.label;
+      b.addEventListener('click', () => { state.D = p.uvw.slice(); buildDirInputs(); update(); });
+      box.appendChild(b);
+    });
   }
 
   function buildChips(which) {
@@ -278,6 +334,13 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     $('noteA').textContent = isZero(state.A) ? 'All three indices are zero, which is not a plane. Set at least one to a nonzero value.' : (pA && pA.note) || '';
     const mark = (box, p) => [...$(box).children].forEach((b) => b.setAttribute('aria-pressed', String(!!p && b.textContent === p.label)));
     mark('chipsA', pA); mark('chipsB', pB);
+    const nD = Lattice.dirNotation(t, state.D);
+    $('nameD').innerHTML = isZero(state.D) ? '—' : nD;
+    $('legD').innerHTML = state.showD && !isZero(state.D) ? nD : '';
+    const same = (a, b) => a.every((v, i) => v === b[i]);
+    const pD = DIRS[t].find((p) => same(p.uvw, state.D));
+    [...$('chipsD').children].forEach((b) => b.setAttribute('aria-pressed', String(!!pD && b.textContent === pD.label)));
+    $('noteD').textContent = isZero(state.D) ? 'All zero is not a direction.' : (pD && pD.note) || '';
 
     const fmt = (x, u = '') => (Number.isFinite(x) ? x.toFixed(3) + u : '—');
     const rows = [];
@@ -288,6 +351,13 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     if (state.showB && !isZero(state.B)) {
       rows.push(['d-spacing, plane B', fmt(Lattice.dSpacing(lat, state.B), ' Å')]);
       if (!isZero(state.A)) rows.push(['Angle between A and B', fmt(Lattice.planeAngle(lat, state.A, state.B), '°')]);
+    }
+    if (state.showD && !isZero(state.D)) {
+      rows.push(['Repeat distance along the direction', fmt(Lattice.dirLength(lat, state.D), ' Å')]);
+      if (!isZero(state.A)) {
+        const n = Lattice.dirToNormal(lat, state.D, state.A);
+        rows.push(['Direction vs. plane A', Lattice.inPlane(lat, state.D, state.A) ? 'lies in the plane' : n < 0.01 ? 'straight out of the plane' : `${(90 - n).toFixed(1)}° out of the plane`]);
+      }
     }
     $('readout').innerHTML = rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
     viewer && viewer.redraw();
@@ -302,9 +372,10 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     if (typeChanged) {
       const ps = PRESETS[m.type];
       state.A = ps[m.type === 'cubic' ? 2 : 1].hkl.slice(); state.B = ps[0].hkl.slice();
+      state.D = DIRS[m.type][m.type === 'cubic' ? 2 : 0].uvw.slice();
     }
     lat = Lattice.makeLattice(m.type, state.a, state.c);
-    buildIndexInputs('A'); buildIndexInputs('B'); buildChips('A'); buildChips('B');
+    buildIndexInputs('A'); buildIndexInputs('B'); buildChips('A'); buildChips('B'); buildDirInputs(); buildDirChips();
     update();
   }
 
@@ -312,6 +383,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   $('la').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v > 0) { state.a = v; if (type() === 'cubic') state.c = v; update(); } });
   $('lc').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v > 0) { state.c = v; update(); } });
   $('showB').addEventListener('change', (e) => { state.showB = e.target.checked; update(); });
+  $('showD').addEventListener('change', (e) => { state.showD = e.target.checked; update(); });
   $('family').addEventListener('change', (e) => { state.family = e.target.checked; update(); });
 
   let viewer = null;
@@ -322,6 +394,7 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
       isZero(state.A) ? null : { hkl: state.A, color: '--plane-a', showFamily: state.family },
       state.showB && !isZero(state.B) ? { hkl: state.B, color: '--plane-b', showFamily: state.family } : null,
     ],
+    opts: { directions: [state.showD && !isZero(state.D) ? { uvw: state.D, color: '--dir' } : null] },
   }), { yaw: -0.55, pitch: 0.28 });
 })();
 </script>

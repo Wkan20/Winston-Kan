@@ -22,6 +22,7 @@ Every chip starts on a wafer cut along a specific crystal plane: silicon (100) f
 - Enter Miller indices `(h k l)`, or Miller–Bravais `(h k i l)` for hexagonal crystals, where `i = −(h + k)` fills in automatically
 - Drag to rotate the unit cell and see the plane (and its whole family of parallel planes) cut through it
 - Read the interplanar spacing `d` and the angle between two planes
+- Draw a crystal direction `[uvw]` (or `[UVTW]` for hexagonal) as an arrow, with its repeat distance and whether it lies in plane A (Weiss zone law, h·u + k·v + l·w = 0)
 
 ### Checked against reference values
 
