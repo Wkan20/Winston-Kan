@@ -109,6 +109,14 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 .refs ol { margin: 0 0 12px; padding-left: 1.3em; }
 .refs li { margin: 0 0 3px; }
 .refs .disclaimer { margin: 0; }
+.intro { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px 40px; padding-block: 22px 4px; align-items: start; }
+@media (max-width: 860px) { .intro { grid-template-columns: 1fr; } }
+.intro h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 8px; }
+.intro p { margin: 0 0 8px; max-width: 62ch; }
+.intro ol { margin: 0; padding: 0; list-style: none; counter-reset: i; display: grid; gap: 8px; }
+.intro li { counter-increment: i; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; font-size: 15px; }
+.intro li::before { content: counter(i); font: 800 22px/1 var(--font-display); }
+.intro li span { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -117,11 +125,24 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
   <div class="head">
     <div>
       <h1>Substrate Plane Viewer</h1>
-      <p class="lede">See which crystal face a substrate is cut on. Pick a material and a plane, drag the cell to rotate it, and compare two planes to get the angle between them. Below, see how a film lines up on the surface. For drawing [uvw] and (hkl) step by step, see <a href="directions.html">Directions &amp; Planes</a>.</p>
+      <p class="lede">See which crystal face a substrate is cut on, and how a film lines up on it.</p>
     </div>
     <div class="bandswatch"><div class="nm">225<small>nm</small></div><div>Gold · SiO₂ on Si</div></div>
   </div>
 </header>
+<div class="wrap" style="padding-bottom:0"><section class="intro" aria-labelledby="t-intro">
+  <div>
+    <h2 id="t-intro">Start here</h2>
+    <p>A crystal is a small box of atoms, the <b>unit cell</b>, repeated in every direction. Slice it flat and you get a <b>plane</b>, named by three numbers (hkl) that say how the slice is tilted.</p>
+    <p>Wafers are cut along one plane. That top layer of atoms is the pattern a new film can copy as it grows: <b>templating</b>, or epitaxy.</p>
+    <p>New to (hkl)? <a href="directions.html">Directions &amp; Planes</a> builds them step by step.</p>
+  </div>
+  <ol>
+    <li><span><b>Pick a crystal</b> and a plane. Drag the cell to turn it.</span></li>
+    <li><span><b>Read the numbers:</b> spacing between planes, and the angle to a second plane.</span></li>
+    <li><span><b>Scroll down</b> to see a film's atoms land on that surface and whether they line up.</span></li>
+  </ol>
+</section></div>
 <div class="wrap">
 
   <div class="bench">

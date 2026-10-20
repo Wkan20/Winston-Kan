@@ -118,6 +118,14 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
 .playrow button { font: 700 14px var(--font-body); color: var(--surface); background: var(--fg); border: 0; border-radius: 3px; padding: 8px 14px; cursor: pointer; }
 .under { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
 .under h2 { font: 700 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+.intro { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr); gap: 16px 40px; padding-block: 22px 4px; align-items: start; }
+@media (max-width: 860px) { .intro { grid-template-columns: 1fr; } }
+.intro h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 8px; }
+.intro p { margin: 0 0 8px; max-width: 62ch; }
+.intro ol { margin: 0; padding: 0; list-style: none; counter-reset: i; display: grid; gap: 8px; }
+.intro li { counter-increment: i; display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 8px; font-size: 15px; }
+.intro li::before { content: counter(i); font: 800 22px/1 var(--font-display); }
+.intro li span { color: var(--muted); }
 </style>
 </head>
 <body>
@@ -131,6 +139,18 @@ table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
     <div class="bandswatch"><div class="nm">350<small>nm</small></div><div>Green · SiO₂ on Si</div></div>
   </div>
 </header>
+<div class="wrap" style="padding-bottom:0"><section class="intro" aria-labelledby="t-intro">
+  <div>
+    <h2 id="t-intro">Start here</h2>
+    <p>A crystal is a small box of atoms, the <b>unit cell</b>, repeated in every direction. To talk about it you need names for two things: arrows through it, called <b>directions</b> [uvw], and flat slices, called <b>planes</b> (hkl).</p>
+    <p>This tool builds each one step by step, the way you would by hand on a homework problem.</p>
+  </div>
+  <ol>
+    <li><span><b>Choose</b> Direction or Plane at the top right.</span></li>
+    <li><span><b>Click a preset</b> or type your own three numbers.</span></li>
+    <li><span><b>Press Play the steps</b> and follow along under the picture.</span></li>
+  </ol>
+</section></div>
 <div class="wrap">
   <div class="bench">
     <div>
