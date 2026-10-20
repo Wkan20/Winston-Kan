@@ -179,12 +179,13 @@ footer { padding-left: var(--gutter); padding-right: var(--gutter-r); padding-bl
     <div class="work">
       <div>
         <h2 id="t-viewer">Substrate Plane Viewer</h2>
-        <p>Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. When I first met Miller indices I could write them down but couldn’t picture the cuts, so I built a tool that slices any plane through a cubic or hexagonal unit cell in 3D and draws crystal directions as arrows.</p>
+        <p>Every chip starts on a wafer cut along a specific crystal plane: silicon (100) for most CMOS, C-plane sapphire for GaN LEDs. When I first met Miller indices I could write them down but couldn’t picture the cuts, so I built a tool that slices any plane through a cubic or hexagonal unit cell in 3D.</p>
         <dl class="facts">
           <div><dt>Model</dt><dd>Planes from the reciprocal-lattice vector G; spacing d = 1/|G|.</dd></div>
           <div><dt>Checked</dt><dd>Sapphire R-plane d = 3.48 Å and 57.6° from C-plane; Si (111) d = 3.136 Å.</dd></div>
         </dl>
         <a class="open" href="visualizer.html">Open the viewer <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        <a class="open" href="directions.html" style="margin-left:22px">Crystal directions <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
       </div>
       <figure class="preview"><canvas id="pv-viewer" width="640" height="480" aria-label="Silicon unit cell with (111) planes, rotating"></canvas><figcaption>Live: silicon, (111) planes. Drag to rotate.</figcaption></figure>
     </div>

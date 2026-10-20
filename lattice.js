@@ -82,52 +82,6 @@
     return (Math.acos(Math.min(1, c)) * 180) / Math.PI;
   }
 
-  // ---------- directions [uvw] ----------
-  // A direction [uvw] is the vector u·a1 + v·a2 + w·a3 (3-index form).
-  // Hexagonal crystals are usually written as [U V T W] with T = −(U + V);
-  // the page passes the independent U, V, W and we convert:
-  //   u = U − T = 2U + V,  v = V − T = U + 2V,  w = W
-  function toThreeIndex(type, idx) {
-    if (type !== 'hexagonal') return idx.slice();
-    const [U, V, W] = idx;
-    return [2 * U + V, U + 2 * V, W];
-  }
-  function dirVector(lat, idx) {
-    const [u, v, w] = toThreeIndex(lat.type, idx);
-    return add(add(scale(lat.A1, u), scale(lat.A2, v)), scale(lat.A3, w));
-  }
-  // Repeat distance in Å: how far you travel along the direction before reaching
-  // the next identical lattice point (the shortest lattice vector along it).
-  const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
-  function latticeStep(lat, idx) {
-    const t = toThreeIndex(lat.type, idx);
-    const g = t.reduce((m, v) => gcd(m, v), 0) || 1;
-    const [u, v, w] = t.map((x) => x / g);
-    return add(add(scale(lat.A1, u), scale(lat.A2, v)), scale(lat.A3, w));
-  }
-  function dirLength(lat, idx) { return len(latticeStep(lat, idx)); }
-  // Angle between two directions (0–180°)
-  function dirAngle(lat, d1, d2) {
-    const a = dirVector(lat, d1), b = dirVector(lat, d2);
-    return (Math.acos(Math.max(-1, Math.min(1, dot(a, b) / (len(a) * len(b))))) * 180) / Math.PI;
-  }
-  // Angle between a direction and a plane's normal (0–90°). 90° means the
-  // direction lies in the plane; 0° means it points straight out of it.
-  function dirToNormal(lat, d, hkl) {
-    const a = dirVector(lat, d), g = gVector(lat, hkl);
-    return (Math.acos(Math.min(1, Math.abs(dot(a, g)) / (len(a) * len(g)))) * 180) / Math.PI;
-  }
-  // Weiss zone law: [uvw] lies in (hkl) when h·u + k·v + l·w = 0 (3-index forms)
-  function inPlane(lat, d, hkl) {
-    const [u, v, w] = toThreeIndex(lat.type, d);
-    return hkl[0] * u + hkl[1] * v + hkl[2] * w === 0;
-  }
-  function dirNotation(type, idx) {
-    const [a, b, c] = idx;
-    const nums = type === 'hexagonal' ? [a, b, -(a + b), c] : [a, b, c];
-    return '[' + nums.map((v) => (v < 0 ? `<span class="bar">${Math.abs(v)}</span>` : `<span>${v}</span>`)).join('') + ']';
-  }
-
   // Slice every plane G·r = n that passes through the cell.
   // A flat plane cut through a convex box is a convex polygon whose corners
   // lie on the box's edges, so we intersect the plane with each edge.
@@ -286,25 +240,6 @@
 
     drawEdges(false);
 
-    // direction arrows: drawn from the origin, scaled down if they would leave the picture
-    (opts.directions || []).forEach((d) => {
-      if (!d || d.hidden) return;
-      let v = latticeStep(lat, d.uvw);
-      const L = len(v);
-      if (L < 1e-9) return;
-      if (L > radius * 1.5) v = scale(v, (radius * 1.5) / L);
-      const o = P(lat.origin), tip = P(add(lat.origin, v));
-      const color = cssVar(d.color, '#12867f');
-      ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = 4; ctx.lineCap = 'round';
-      const ang = Math.atan2(tip[1] - o[1], tip[0] - o[0]);
-      ctx.beginPath(); ctx.moveTo(o[0], o[1]); ctx.lineTo(tip[0] - 9 * Math.cos(ang), tip[1] - 9 * Math.sin(ang)); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(tip[0], tip[1]);
-      ctx.lineTo(tip[0] - 15 * Math.cos(ang - 0.42), tip[1] - 15 * Math.sin(ang - 0.42));
-      ctx.lineTo(tip[0] - 15 * Math.cos(ang + 0.42), tip[1] - 15 * Math.sin(ang + 0.42));
-      ctx.closePath(); ctx.fill(); ctx.lineCap = 'butt';
-      ctx.beginPath(); ctx.arc(o[0], o[1], 4, 0, 6.29); ctx.fill();
-    });
-
     // lattice-vector arrows from the origin
     if (opts.axes !== false) {
       const axes = lat.type === 'cubic'
@@ -368,8 +303,7 @@
     };
   }
 
-  const api = { makeLattice, gVector, dSpacing, planeAngle, planeFamily, intercepts, notation, render, attachViewer,
-    toThreeIndex, dirVector, dirLength, dirAngle, dirToNormal, inPlane, dirNotation };
+  const api = { makeLattice, gVector, dSpacing, planeAngle, planeFamily, intercepts, notation, render, attachViewer };
   if (typeof module !== 'undefined' && module.exports) module.exports = api;
   else root.Lattice = api;
 })(typeof window !== 'undefined' ? window : globalThis);

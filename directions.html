@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Crystal Directions</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+@font-face { font-family: "Big Shoulders Display"; src: url("fonts/big-shoulders-display.woff") format("woff"); font-weight: 100 900; font-display: swap; }
+@font-face { font-family: "Schibsted Grotesk"; src: url("fonts/schibsted-grotesk.woff") format("woff"); font-weight: 400 900; font-display: swap; }
+/* Same oxide-chart world as the other tools; a 350 nm band opens this page. */
+:root {
+  --si: #d8d8ed;
+  --film-350: #80d5c4;
+  --surface: #fbfbfd;
+  --bg: #d8d8ed;
+  --fg: #17141f;
+  --muted: rgba(23, 20, 31, .84);
+  --line: rgba(23, 20, 31, .2);
+  --cell: rgba(23, 20, 31, .5);
+  --dir-a: #12867f;     /* direction A: teal */
+  --dir-b: #eb6834;     /* direction B: orange */
+  --leg: #2a78d6;       /* the steps along x, y, z */
+  --rule: rgba(23, 20, 31, .2);
+  --ink: #17141f;
+  --ink-soft: rgba(23, 20, 31, .84);
+  --focus: #17141f;
+  --font-display: "Big Shoulders Display", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif; /* lattice.js reads this for axis labels */
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scrollbar-color: rgba(23,20,31,.38) var(--si); }
+body { margin: 0; background: var(--si); color: var(--fg); font: 16px/1.55 var(--font-body); -webkit-font-smoothing: antialiased; }
+::selection { background: var(--fg); color: var(--si); }
+a { color: inherit; text-underline-offset: 4px; text-decoration-thickness: 1.5px; }
+.pad { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 24px 40px; }
+
+.band { background: var(--film-350); border-bottom: 1px solid var(--line); padding-block: 18px 34px; }
+.band .row { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; flex-wrap: wrap; font-size: 14px; }
+.band .row b { font-weight: 700; }
+.band .row span { color: var(--muted); }
+.band .head { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 32px; align-items: end; margin-top: 26px; }
+@media (max-width: 700px) { .band .head { grid-template-columns: 1fr; } }
+h1 { font: 900 clamp(46px, 8vw, 96px)/.86 var(--font-display); text-transform: uppercase; margin: 0 0 14px; text-wrap: balance; }
+.lede { margin: 0; max-width: 62ch; font-size: 17px; }
+.bandswatch { text-align: right; }
+.bandswatch .nm { font: 800 44px/.9 var(--font-display); }
+.bandswatch .nm small { font-size: 20px; }
+.bandswatch div { font-size: 13px; color: var(--muted); }
+@media (max-width: 700px) { .bandswatch { text-align: left; } }
+
+.bench { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .bench { grid-template-columns: 1fr; } }
+.stage { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; aspect-ratio: 1 / 1; max-width: 100%; max-height: 640px; width: 100%; }
+.stage canvas { width: 100%; height: 100%; display: block; cursor: grab; touch-action: none; }
+.stage canvas:active { cursor: grabbing; }
+.stage .hint { position: absolute; left: 14px; bottom: 12px; font-size: 13px; color: var(--muted); pointer-events: none; }
+.legend { position: absolute; right: 14px; top: 12px; display: grid; gap: 4px; font: 700 17px var(--font-body); letter-spacing: .02em; text-align: right; }
+.legend .a { color: var(--dir-a); }
+.legend .b { color: var(--dir-b); }
+
+.panel { display: grid; gap: 14px; min-width: 0; }
+fieldset { border: 1px solid var(--line); border-radius: 4px; background: var(--surface); margin: 0; padding: 12px 14px 14px; min-width: 0; }
+legend { font: 700 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; color: var(--fg); padding: 0 6px; }
+label { font-size: 14px; color: var(--muted); }
+select, input[type=number] { font: 500 15px var(--font-body); color: var(--fg); background: var(--surface); border: 1px solid var(--line); border-radius: 3px; padding: 7px 8px; width: 100%; }
+select:focus-visible, input:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.row { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); }
+.field { display: grid; gap: 4px; min-width: 0; }
+.idx { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 10px; }
+.idx.cubic { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.idx .field label { text-align: center; font-style: italic; }
+.idx input { text-align: center; }
+.idx input[readonly] { color: var(--muted); border-style: dashed; }
+.plane-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.big { font: 700 26px/1.1 var(--font-body); letter-spacing: .02em; }
+.big .bar, .note .bar, td .bar, .legend .bar { text-decoration: overline; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+.chip { font: 500 13px var(--font-body); color: var(--fg); background: transparent; cursor: pointer; border: 1px solid var(--line); border-radius: 3px; padding: 5px 9px; }
+.chip:hover { border-color: var(--fg); }
+.chip[aria-pressed="true"] { border-color: var(--fg); background: var(--fg); color: var(--surface); }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); cursor: pointer; }
+.toggle input { accent-color: var(--fg); width: 16px; height: 16px; }
+
+table.readout { width: 100%; border-collapse: collapse; font-size: 14px; }
+.readout th { text-align: left; font-weight: 400; color: var(--muted); padding: 8px 0; border-bottom: 1px solid var(--line); }
+.readout td { text-align: right; font-weight: 600; padding: 8px 0; border-bottom: 1px solid var(--line); }
+.readout tr:last-child th, .readout tr:last-child td { border-bottom: 0; }
+.note { font-size: 14px; margin: 10px 0 0; }
+.note:empty { display: none; }
+
+.explain { margin-top: 36px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px 36px; border-top: 1px solid var(--line); padding-top: 30px; }
+@media (max-width: 860px) { .explain { grid-template-columns: 1fr; } }
+.explain h2 { font: 800 26px/1 var(--font-display); text-transform: uppercase; margin: 0 0 10px; text-wrap: balance; }
+.explain p { margin: 0; color: var(--muted); max-width: 60ch; }
+.explain code { font-family: var(--font-body); font-weight: 600; color: var(--fg); }
+.refs { border-top: 1px solid var(--rule); margin-top: 28px; padding-top: 18px; padding-bottom: 40px; font-size: 13px; line-height: 1.5; color: var(--ink-soft); max-width: 110ch; }
+.refs h2 { font: 700 15px var(--font-body); color: var(--ink); margin: 0 0 6px; text-transform: none; letter-spacing: 0; }
+.refs ol { margin: 0 0 12px; padding-left: 1.3em; }
+.refs li { margin: 0 0 3px; }
+.refs .disclaimer { margin: 0; }
+.bar { text-decoration: overline; }
+.steps { margin: 14px 0 0; padding: 0; list-style: none; counter-reset: s; display: grid; gap: 6px; }
+.steps li { counter-increment: s; display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 8px; font-size: 14px; color: var(--muted); }
+.steps li::before { content: counter(s); font: 800 17px/1.2 var(--font-display); color: var(--fg); }
+.steps li.on { color: var(--fg); font-weight: 600; }
+.steps b { color: var(--fg); }
+.playrow { display: flex; gap: 8px; align-items: center; margin-top: 12px; }
+.playrow button { font: 700 14px var(--font-body); color: var(--surface); background: var(--fg); border: 0; border-radius: 3px; padding: 8px 14px; cursor: pointer; }
+.under { margin-top: 14px; background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 12px 14px; }
+.under h2 { font: 700 13px var(--font-body); letter-spacing: .04em; text-transform: uppercase; margin: 0; }
+</style>
+</head>
+<body>
+<header class="band pad">
+  <div class="row"><a href="index.html"><b>Winston Kan</b></a><span>Materials Science &amp; Engineering, RPI ’29</span></div>
+  <div class="head">
+    <div>
+      <h1>Crystal Directions</h1>
+      <p class="lede">Learn to read [uvw]. Pick a direction and watch it built step by step inside a cubic unit cell, then see which atoms sit along it.</p>
+    </div>
+    <div class="bandswatch"><div class="nm">350<small>nm</small></div><div>Green · SiO₂ on Si</div></div>
+  </div>
+</header>
+<div class="wrap">
+  <div class="bench">
+    <div>
+      <div class="stage">
+        <canvas id="cv" aria-label="Cubic unit cell with the chosen directions drawn as arrows"></canvas>
+        <div class="legend"><div class="a" id="legA"></div><div class="b" id="legB"></div></div>
+        <div class="hint">drag to rotate</div>
+      </div>
+      <div class="under">
+        <h2>How to draw <span id="howName"></span></h2>
+        <ol class="steps" id="steps"></ol>
+        <div class="playrow"><button type="button" id="play">Play the steps</button></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <fieldset>
+        <legend>Crystal structure</legend>
+        <div class="chips" id="structs" style="margin-top:4px"></div>
+        <div class="row" style="margin-top:10px">
+          <div class="field"><label for="la">Lattice constant a (Å)</label><input id="la" type="number" step="0.001" min="0.5"></div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Direction A</legend>
+        <div class="plane-head"><span class="big" id="nameA" style="color:var(--dir-a)"></span>
+          <label class="toggle"><input type="checkbox" id="family"> Show the family</label></div>
+        <div class="idx cubic" id="idxA"></div>
+        <div class="chips" id="chipsA"></div>
+        <p class="note" id="noteA"></p>
+      </fieldset>
+
+      <fieldset>
+        <legend>Direction B</legend>
+        <div class="plane-head"><span class="big" id="nameB" style="color:var(--dir-b)"></span>
+          <label class="toggle"><input type="checkbox" id="showB"> Show</label></div>
+        <div class="idx cubic" id="idxB"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Readout</legend>
+        <table class="readout"><tbody id="readout"></tbody></table>
+      </fieldset>
+    </div>
+  </div>
+
+  <section class="explain">
+    <div>
+      <h2>What [uvw] means</h2>
+      <p>A direction is an arrow. Starting from a corner, move <code>u</code> cell lengths along x, <code>v</code> along y, <code>w</code> along z. The arrow from start to finish is [uvw]. Square brackets mean a direction; round brackets <code>(hkl)</code> mean a plane.</p>
+    </div>
+    <div>
+      <h2>Negatives and fractions</h2>
+      <p>A bar over a number means negative: [1̄10] goes back along x. Indices are always the smallest whole numbers, so ½ along x and 1 along y is written [120]. To draw one, divide by the biggest index so the arrow fits in the cell.</p>
+    </div>
+    <div>
+      <h2>Families and density</h2>
+      <p>&lt;uvw&gt; means every direction that looks the same by symmetry, like all six cube edges &lt;100&gt;. Linear density is atoms per length along a direction. Metals slip along their most crowded direction: &lt;110&gt; in FCC, &lt;111&gt; in BCC.</p>
+    </div>
+  </section>
+
+<section class="refs" aria-labelledby="t-refs">
+  <h2 id="t-refs">Sources</h2>
+  <ol>
+    <li>Direction notation, families, and linear density: standard introductory materials science (e.g., Callister &amp; Rethwisch, <i>Materials Science and Engineering: An Introduction</i>, crystal structures chapter).</li>
+    <li>Lattice constants (Po, Fe, Cu and the others offered): standard room-temperature handbook values.</li>
+  </ol>
+  <p class="disclaimer"><b>Disclaimer.</b> This is a learning project by an undergraduate student, built with help from Claude, an AI assistant. Any mistakes are mine, and corrections are welcome. Not affiliated with or endorsed by RPI or any author cited here.</p>
+</section>
+</div>
+
+<script>
+(function () {
+  const $ = (id) => document.getElementById(id);
+  const css = (n) => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- structures: lattice points inside one cubic cell, in units of a ----------
+  const CORNERS = []; for (const x of [0, 1]) for (const y of [0, 1]) for (const z of [0, 1]) CORNERS.push([x, y, z]);
+  const STRUCTS = {
+    sc:  { label: 'Simple cubic', eg: 'polonium', a: 3.352, extra: [] },
+    bcc: { label: 'BCC', eg: 'iron, molybdenum, tungsten', a: 2.866, extra: [[0.5, 0.5, 0.5]] },
+    fcc: { label: 'FCC', eg: 'copper, aluminum, nickel', a: 3.615, extra: [[0.5, 0.5, 0], [0.5, 0.5, 1], [0.5, 0, 0.5], [0.5, 1, 0.5], [0, 0.5, 0.5], [1, 0.5, 0.5]] },
+  };
+  const PRESETS = [[1, 0, 0], [1, 1, 0], [1, 1, 1], [-1, 1, 0], [2, 1, 0], [0, 1, 2]];
+  const state = { s: 'fcc', a: 3.615, A: [1, 1, 0], B: [1, 0, 0], showB: false, family: false };
+
+  // ---------- math ----------
+  const gcd = (a, b) => (b ? gcd(b, a % b) : Math.abs(a));
+  const reduceIdx = (d) => { const g = d.reduce((m, v) => gcd(m, v), 0) || 1; return d.map((v) => v / g); };
+  const norm = (d) => Math.hypot(...d);
+  const zero = (d) => d.every((v) => v === 0);
+  const angle = (p, q) => (Math.acos(Math.max(-1, Math.min(1, (p[0] * q[0] + p[1] * q[1] + p[2] * q[2]) / (norm(p) * norm(q))))) * 180) / Math.PI;
+  // shortest lattice translation along d (in units of a): half the [uvw] vector when the
+  // structure has a lattice point there (FCC: u+v+w even; BCC: all odd), otherwise the whole vector
+  function repeat(s, d) {
+    const r = reduceIdx(d);
+    const half = (s === 'fcc' && (r[0] + r[1] + r[2]) % 2 === 0) || (s === 'bcc' && r.every((v) => Math.abs(v) % 2 === 1));
+    return norm(r) * (half ? 0.5 : 1);
+  }
+  // the textbook construction: pick a start corner so the arrow stays in the cell,
+  // and divide by the largest index so the end point lands on the cell
+  function construct(d) {
+    const m = Math.max(...d.map(Math.abs));
+    const step = d.map((v) => v / m);
+    const start = d.map((v) => (v < 0 ? 1 : 0));
+    return { m, step, start, end: start.map((v, i) => v + step[i]) };
+  }
+  function family(d) {
+    const abs = d.map(Math.abs), out = new Set();
+    const perms = [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]];
+    for (const p of perms) for (let sx = -1; sx <= 1; sx += 2) for (let sy = -1; sy <= 1; sy += 2) for (let sz = -1; sz <= 1; sz += 2) {
+      const v = [abs[p[0]] * sx, abs[p[1]] * sy, abs[p[2]] * sz];
+      out.add(v.join(','));
+    }
+    return [...out].map((k) => k.split(',').map(Number));
+  }
+  const fmtFrac = (x) => { const r = Math.round(x * 6) / 6; if (Number.isInteger(r)) return String(r); const map = { '0.5': '½', '-0.5': '−½', '0.333': '⅓', '-0.333': '−⅓', '0.667': '⅔', '-0.667': '−⅔', '0.167': '⅙', '-0.167': '−⅙', '0.833': '⅚', '-0.833': '−⅚' }; return map[r.toFixed(3).replace(/0+$/, '').replace(/\.$/, '')] || map[r.toFixed(3)] || x.toFixed(2); };
+  const note = (d, br = '[]') => br[0] + d.map((v) => (v < 0 ? `<span class="bar">${-v}</span>` : v)).join('') + br[1];
+
+  // ---------- 3D projection ----------
+  const view = { yaw: -0.62, pitch: 0.42 };
+  function P(p, W, H) {
+    const q = [p[0] - 0.5, p[1] - 0.5, p[2] - 0.5];
+    const cy = Math.cos(view.yaw), sy = Math.sin(view.yaw);
+    const x = q[0] * cy - q[1] * sy, y = q[0] * sy + q[1] * cy;
+    const cp = Math.cos(view.pitch), sp = Math.sin(view.pitch);
+    const y2 = y * cp - q[2] * sp, z2 = y * sp + q[2] * cp;
+    const s = Math.min(W, H) * 0.5;
+    return [W / 2 + x * s, H / 2 - z2 * s, y2];
+  }
+
+  // animation: 0 = nothing built yet … 4 = arrow drawn
+  let anim = 4, playing = false, t0 = 0;
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  function arrow(a, b, color, w) {
+    const ang = Math.atan2(b[1] - a[1], b[0] - a[0]);
+    ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0] - 8 * Math.cos(ang), b[1] - 8 * Math.sin(ang)); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(b[0], b[1]);
+    ctx.lineTo(b[0] - (10 + w * 1.5) * Math.cos(ang - 0.42), b[1] - (10 + w * 1.5) * Math.sin(ang - 0.42));
+    ctx.lineTo(b[0] - (10 + w * 1.5) * Math.cos(ang + 0.42), b[1] - (10 + w * 1.5) * Math.sin(ang + 0.42));
+    ctx.closePath(); ctx.fill(); ctx.lineCap = 'butt';
+  }
+  function draw() {
+    const dpr = window.devicePixelRatio || 1, W = cv.clientWidth, H = cv.clientHeight;
+    if (!W) return;
+    if (cv.width !== Math.round(W * dpr)) { cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr); }
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0); ctx.clearRect(0, 0, W, H);
+    const p = (q) => P(q, W, H), ink = css('--fg'), A = state.A;
+    // cell edges
+    const edges = [];
+    for (const a of CORNERS) for (const b of CORNERS) { const d = a.reduce((s, v, i) => s + Math.abs(v - b[i]), 0); if (d === 1 && a.join() < b.join()) edges.push([a, b]); }
+    const mean = edges.reduce((s, [a, b]) => s + p(a)[2] + p(b)[2], 0) / (edges.length * 2);
+    const drawEdges = (back) => edges.forEach(([a, b]) => {
+      const pa = p(a), pb = p(b); if (((pa[2] + pb[2]) / 2 > mean) !== back) return;
+      ctx.strokeStyle = 'rgba(23,20,31,.5)'; ctx.lineWidth = back ? 1 : 1.5; ctx.setLineDash(back ? [3, 4] : []);
+      ctx.beginPath(); ctx.moveTo(pa[0], pa[1]); ctx.lineTo(pb[0], pb[1]); ctx.stroke(); ctx.setLineDash([]);
+    });
+    drawEdges(true);
+    // atoms, far to near; atoms that sit on direction A are ringed
+    const C = zero(A) ? null : construct(A);
+    const onA = (q) => {
+      if (!C) return false;
+      const d = C.step, r = q.map((v, i) => v - C.start[i]), L2 = d[0] ** 2 + d[1] ** 2 + d[2] ** 2;
+      const t = (r[0] * d[0] + r[1] * d[1] + r[2] * d[2]) / L2;
+      if (t < -1e-6 || t > 1 + 1e-6) return false;
+      return Math.hypot(r[0] - t * d[0], r[1] - t * d[1], r[2] - t * d[2]) < 1e-6;
+    };
+    const atoms = [...CORNERS, ...STRUCTS[state.s].extra].map((q) => ({ q, pr: p(q), on: onA(q), extra: !CORNERS.includes(q) }));
+    atoms.sort((a, b) => b.pr[2] - a.pr[2]);
+    const R = Math.min(W, H) * 0.035;
+    for (const at of atoms) {
+      ctx.beginPath(); ctx.arc(at.pr[0], at.pr[1], R, 0, 6.29);
+      ctx.fillStyle = at.extra ? '#b9b3cf' : '#8f8aa6'; ctx.globalAlpha = 0.9; ctx.fill(); ctx.globalAlpha = 1;
+      if (at.on && anim >= 4) { ctx.strokeStyle = css('--dir-a'); ctx.lineWidth = 3; ctx.stroke(); }
+    }
+    drawEdges(false);
+    // axes at the origin corner
+    ctx.font = '600 13px "Schibsted Grotesk", Arial, sans-serif'; ctx.fillStyle = css('--muted');
+    [['x', [1.18, 0, 0]], ['y', [0, 1.18, 0]], ['z', [0, 0, 1.18]]].forEach(([l, q]) => { const o = p([0, 0, 0]), e = p(q); ctx.strokeStyle = 'rgba(23,20,31,.35)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(o[0], o[1]); ctx.lineTo(e[0], e[1]); ctx.stroke(); ctx.fillText(l, e[0] + 4, e[1] + 4); });
+    // family: every equivalent direction, drawn from the cell center
+    if (state.family && !zero(A)) family(A).forEach((d) => {
+      const m = Math.max(...d.map(Math.abs)), e = d.map((v) => 0.5 + (v / m) * 0.5);
+      ctx.globalAlpha = 0.45; arrow(p([0.5, 0.5, 0.5]), p(e), css('--dir-a'), 2); ctx.globalAlpha = 1;
+    });
+    // B
+    if (state.showB && !zero(state.B)) { const c = construct(state.B); arrow(p(c.start), p(c.end), css('--dir-b'), 4); }
+    // the construction for A: start dot, the x / y / z legs, then the arrow
+    if (C) {
+      const leg = css('--leg');
+      const pts = [C.start.slice()];
+      for (let i = 0; i < 3; i++) { const n = pts[pts.length - 1].slice(); n[i] += C.step[i]; pts.push(n); }
+      const s0 = p(C.start);
+      ctx.fillStyle = ink; ctx.beginPath(); ctx.arc(s0[0], s0[1], 5, 0, 6.29); ctx.fill();
+      for (let i = 0; i < 3; i++) {
+        const k = Math.max(0, Math.min(1, anim - i));
+        if (k <= 0 || Math.abs(C.step[i]) < 1e-9) continue;
+        const a = p(pts[i]), b = p(pts[i].map((v, j) => v + (j === i ? C.step[i] * k : 0)));
+        ctx.strokeStyle = leg; ctx.lineWidth = 2.5; ctx.setLineDash([6, 4]);
+        ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.lineTo(b[0], b[1]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.fillStyle = leg; ctx.font = '700 13px "Schibsted Grotesk", Arial, sans-serif';
+        if (k >= 1) ctx.fillText(`${fmtFrac(C.step[i])} ${'xyz'[i]}`, (a[0] + b[0]) / 2 + 6, (a[1] + b[1]) / 2 - 6);
+      }
+      if (anim >= 3) { const k = Math.min(1, anim - 3), e = C.start.map((v, i) => v + C.step[i] * k); if (k > 0.05) arrow(s0, p(e), css('--dir-a'), 5); }
+    }
+  }
+
+  // ---------- UI ----------
+  function steps() {
+    const A = state.A;
+    if (zero(A)) { $('steps').innerHTML = '<li>All zero is not a direction.</li>'; return; }
+    const C = construct(A), neg = A.some((v) => v < 0);
+    const items = [
+      `Start at <b>(${C.start.join(', ')})</b>${neg ? ': a negative index moves the start to the far side so the arrow stays in the cell.' : ', a corner of the cell.'}`,
+      C.m > 1 ? `The biggest index is ${C.m}, so divide by ${C.m}: move <b>${C.step.map(fmtFrac).join(', ')}</b>.` : `Move <b>${C.step.map(fmtFrac).join(', ')}</b> cell lengths along x, y, z.`,
+      `Follow the blue steps: ${C.step.map((v, i) => `${fmtFrac(v)} along ${'xyz'[i]}`).join(', then ')}.`,
+      `The arrow from start to finish is <b>${note(A)}</b>.`,
+    ];
+    $('steps').innerHTML = items.map((t, i) => `<li class="${playing && Math.floor(anim) === i ? 'on' : ''}"><span>${t}</span></li>`).join('');
+  }
+  function readout() {
+    const A = state.A, rows = [], s = state.s, a = state.a;
+    $('nameA').innerHTML = zero(A) ? '—' : note(A); $('legA').innerHTML = zero(A) ? '' : note(A);
+    $('nameB').innerHTML = zero(state.B) ? '—' : note(state.B); $('legB').innerHTML = state.showB && !zero(state.B) ? note(state.B) : '';
+    $('howName').innerHTML = zero(A) ? '' : note(A);
+    [...$('chipsA').children].forEach((b, i) => b.setAttribute('aria-pressed', String(PRESETS[i].every((v, j) => v === A[j]))));
+    [...$('structs').children].forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.s === s)));
+    if (!zero(A)) {
+      const r = reduceIdx(A), fam = family(A);
+      if (r.some((v, i) => v !== A[i])) rows.push(['Smallest whole numbers', note(r)]);
+      rows.push([`Family &lt;${r.map(Math.abs).sort((x, y) => y - x).join('')}&gt;`, `${fam.length} directions`]);
+      const rep = repeat(s, A) * a;
+      rows.push(['Repeat distance (atom to atom)', `${rep.toFixed(3)} Å`]);
+      rows.push(['Linear density', `${(10 / rep).toFixed(2)} atoms/nm`]);
+      const best = Math.min(...[[1, 0, 0], [1, 1, 0], [1, 1, 1]].map((d) => repeat(s, d)));
+      $('noteA').textContent = Math.abs(repeat(s, A) - best) < 1e-9 ? `Close-packed in ${STRUCTS[s].label}: atoms touch along this direction, so it is the easiest way for the metal to slip.` : '';
+    } else $('noteA').textContent = '';
+    if (state.showB && !zero(state.B) && !zero(A)) rows.push(['Angle between A and B', `${angle(A, state.B).toFixed(2)}°`]);
+    $('readout').innerHTML = rows.map(([k, v]) => `<tr><th scope="row">${k}</th><td>${v}</td></tr>`).join('');
+  }
+  function idxInputs(which) {
+    $('idx' + which).innerHTML = ['u', 'v', 'w'].map((L, i) => `<div class="field"><label for="${which}${L}">${L}</label><input id="${which}${L}" type="number" step="1" min="-6" max="6" value="${state[which][i]}"></div>`).join('');
+    ['u', 'v', 'w'].forEach((L) => $(which + L).addEventListener('input', () => {
+      state[which] = ['u', 'v', 'w'].map((x) => Math.max(-6, Math.min(6, parseInt($(which + x).value, 10) || 0)));
+      if (which === 'B' && !zero(state.B)) { state.showB = true; $('showB').checked = true; }
+      update();
+    }));
+  }
+  function update() { readout(); steps(); draw(); }
+
+  Object.entries(STRUCTS).forEach(([k, st]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.dataset.s = k; b.textContent = st.label; b.title = 'e.g. ' + st.eg;
+    b.addEventListener('click', () => { state.s = k; state.a = st.a; $('la').value = st.a; update(); });
+    $('structs').appendChild(b);
+  });
+  PRESETS.forEach((d) => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.innerHTML = note(d);
+    b.addEventListener('click', () => { state.A = d.slice(); idxInputs('A'); update(); play(); });
+    $('chipsA').appendChild(b);
+  });
+  $('la').value = state.a;
+  $('la').addEventListener('input', (e) => { const v = parseFloat(e.target.value); if (v > 0) { state.a = v; update(); } });
+  $('family').addEventListener('change', (e) => { state.family = e.target.checked; update(); });
+  $('showB').addEventListener('change', (e) => { state.showB = e.target.checked; update(); });
+  idxInputs('A'); idxInputs('B');
+
+  function play() {
+    if (reduce) { anim = 4; update(); return; }
+    playing = true; anim = 0; t0 = performance.now();
+  }
+  $('play').addEventListener('click', play);
+  function tick(now) {
+    if (playing) {
+      anim = Math.min(4, (now - t0) / 900);
+      if (anim >= 4) playing = false;
+      steps(); draw();
+    }
+    requestAnimationFrame(tick);
+  }
+
+  let drag = null;
+  cv.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, yaw: view.yaw, pitch: view.pitch }; cv.setPointerCapture(e.pointerId); });
+  cv.addEventListener('pointermove', (e) => { if (!drag) return; view.yaw = drag.yaw + (e.clientX - drag.x) * 0.01; view.pitch = Math.max(-1.4, Math.min(1.4, drag.pitch + (e.clientY - drag.y) * 0.01)); draw(); });
+  cv.addEventListener('pointerup', () => (drag = null)); cv.addEventListener('pointercancel', () => (drag = null));
+  if (typeof ResizeObserver !== 'undefined') new ResizeObserver(draw).observe(cv);
+  update();
+  requestAnimationFrame(tick);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(draw);
+})();
+</script>
+</body>
+</html>
